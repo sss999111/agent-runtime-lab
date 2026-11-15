@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>我从零写了一个 Agent 运行时，用真实实验回答 4 个工程问题</title>
+<style>
+  body { max-width: 760px; margin: 40px auto; padding: 0 20px; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif; line-height: 1.8; color: #1a1a1a; background: #fff; }
+  h1 { font-size: 1.8em; border-bottom: 2px solid #0366d6; padding-bottom: 12px; }
+  h2 { font-size: 1.35em; margin-top: 2em; color: #0366d6; }
+  h3 { font-size: 1.1em; margin-top: 1.5em; }
+  p { margin: 0.8em 0; }
+  code { background: #f6f8fa; padding: 2px 6px; border-radius: 4px; font-size: 0.9em; font-family: "SFMono-Regular", Consolas, monospace; }
+  pre { background: #f6f8fa; padding: 12px; border-radius: 6px; overflow-x: auto; font-size: 0.85em; }
+  pre code { background: none; padding: 0; }
+  table { border-collapse: collapse; width: 100%; margin: 1em 0; font-size: 0.92em; }
+  th, td { border: 1px solid #d0d7de; padding: 8px 12px; text-align: left; }
+  th { background: #f6f8fa; }
+  tr:nth-child(even) td { background: #fbfcfd; }
+  blockquote { border-left: 4px solid #0366d6; margin: 1em 0; padding: 0 1em; color: #57606a; background: #f6f8fa; }
+  hr { border: none; border-top: 1px solid #d0d7de; margin: 2em 0; }
+  a { color: #0366d6; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  ul { padding-left: 1.5em; }
+  li { margin: 0.3em 0; }
+  .meta { color: #57606a; font-size: 0.9em; margin-bottom: 2em; }
+</style>
+</head>
+<body>
+
+<h1>我从零写了一个 Agent 运行时，用真实实验回答 4 个工程问题</h1>
+<p class="meta">项目地址：<a href="https://github.com/sss999111/agent-runtime-lab">github.com/sss999111/agent-runtime-lab</a></p>
+
+<h2>为什么造这个轮子</h2>
+<p>市面上 Agent 框架很多（LangChain、AutoGen、CrewAI），但用它们做项目有个问题：<strong>你说不清自己做了什么</strong>。简历上写"基于 LangChain 开发了一个 Agent"，面试官追问"上下文怎么压缩的？记忆怎么设计的？"，你只能答"框架帮我做了"。</p>
+<p>所以我用纯 Python 标准库从零写了一个 Agent 运行时 <a href="https://github.com/sss999111/agent-runtime-lab">agent-runtime-lab</a>，不套任何框架，每一层都自己实现并跑实验。火山方舟的豆包 API 当模型，19 个可自动判分的任务当评测集。</p>
+<p>这篇文章讲四个核心设计取舍，每个都带真实实验数字。</p>
+
+<hr>
+
+<h2>问题一：上下文压缩到什么程度会丢关键约束？</h2>
+<p>Agent 跑多轮后上下文会膨胀，必须压缩。我实现了四种策略：</p>
+<ul>
+<li><strong>full</strong>：全量保留（基线）</li>
+<li><strong>window</strong>：只留最近 N 步，更早的直接丢</li>
+<li><strong>state_card</strong>：把更早的步骤压成「工具名 + 参数 + 结果前 120 字」的结构化卡片</li>
+<li><strong>summary</strong>：调一次模型把历史压成一段摘要</li>
+</ul>
+<p>在两个长文本任务（从 4800 字报告里找风险点）上各跑 3 次：</p>
+<table>
+<tr><th>策略</th><th>通过</th><th>平均步数</th><th>平均输入 tokens</th><th>相对全量</th><th>耗时</th></tr>
+<tr><td>full 全量</td><td>6/6</td><td>5.7</td><td>15,670</td><td>—</td><td>11.6s</td></tr>
+<tr><td>window 丢历史</td><td>2/2</td><td>6.5</td><td>11,902</td><td>-24%</td><td>15.0s</td></tr>
+<tr><td><strong>state_card 状态卡</strong></td><td><strong>6/6</strong></td><td>5.8</td><td><strong>10,323</strong></td><td><strong>-34%</strong></td><td>13.7s</td></tr>
+<tr><td>summary 摘要压缩</td><td>2/2</td><td>6.5</td><td>13,064</td><td>-15%</td><td>167s</td></tr>
+</table>
+<p><strong>结论：结构化状态卡最划算。</strong> 省 34% token，成功率不掉，耗时只多 18%。</p>
+<p>两个反直觉的发现：</p>
+<ol>
+<li><strong>直接丢历史会逼模型重读</strong> — window 省了 24% token，但步数从 5.7 涨到 6.5，模型为了找回丢失的信息又去读文件，得不偿失。</li>
+<li><strong>摘要压缩是负收益</strong> — 只省 15% token，耗时却暴涨 14 倍。因为每压一次都要多调一次模型，摘要本身还占上下文，对小模型来说延迟占主导。</li>
+</ol>
+
+<hr>
+
+<h2>问题二：三层记忆在什么任务上真正有用？</h2>
+<p>我设计了三层记忆：</p>
+<ul>
+<li><strong>L1 工作记忆</strong>：当前对话的步骤 + 状态卡</li>
+<li><strong>L2 情景轨迹</strong>：每个任务结束自动写入 <code>episodic.jsonl</code></li>
+<li><strong>L3 长期事实</strong>：通过 <code>remember</code> 工具显式写入 <code>facts.jsonl</code></li>
+</ul>
+<p>记忆块拼在系统提示最前面，强制模型遵守。</p>
+<p><strong>向量检索</strong>：长期事实不是简单取最近 N 条，而是用字符 n-gram + 余弦相似度计算与当前任务的相关度，优先返回最相关的事实。比如查"把项目代号写到文件里"，会优先召回"项目代号是 Phoenix"这条，而不是无关的"数据库超时 30 秒"。</p>
+<p>做了个对照实验：先让 Agent 记住"项目代号是 Phoenix"，再让它把代号写到文件里。</p>
+<table>
+<tr><th>组别</th><th>通过</th><th>平均步数</th><th>平均 tokens</th></tr>
+<tr><td>有记忆（先记再写）</td><td><strong>4/4</strong></td><td>2.5</td><td>1,966</td></tr>
+<tr><td>无记忆（直接写）</td><td><strong>0/2</strong></td><td>8.0（跑满）</td><td>9,488</td></tr>
+</table>
+<p><strong>结论：长期事实能把不可完成的任务变成 3 步完成。</strong> 对照组不知道代号，反复列文件、读配置，8 步耗尽仍失败。</p>
+<p>但也发现一个问题：<strong>格式化类偏好遵守率低</strong>。早期测试让模型记住"报告用 markdown 格式"，即使注入到系统提示，lite 模型仍大概率输出纯文本。说明软偏好的遵守依赖模型能力，<strong>事实检索类记忆比风格偏好更稳定可靠</strong>。</p>
+
+<hr>
+
+<h2>问题三：Skill 自进化能不能让 Agent 越用越强？</h2>
+<p>我把 Skill 定义为「可复用的打法手册」：每个 skill 是一个目录，里面一个 <code>manifest.json</code>，包含触发词和 playbook（步骤说明）。任务开始时按触发词匹配，命中的 skill 的 playbook 注入系统提示。</p>
+<p>更关键的是<strong>自进化</strong>：Agent 可以调用 <code>learn_skill</code> 工具，把一次成功的任务打法写成新的 skill 落盘，下次同类任务自动参照。</p>
+<p>还有一个<strong>健康度机制</strong>：统计每个 Skill 在任务中的成功率，成功率低于 30% 且样本数 ≥3 的 Skill 会被自动禁用，避免劣质打法长期残留干扰后续任务。</p>
+<p>验证下来四个能力都跑通了：</p>
+<ol>
+<li><strong>注入</strong>：CSV 求和任务自动匹配 <code>csv_sum</code> skill，playbook 进入系统提示</li>
+<li><strong>自进化</strong>：<code>learn_skill</code> 生成的 <code>json_config_handler</code> manifest 正确落盘</li>
+<li><strong>热插拔</strong>：手动放一个 manifest，<code>reload()</code> 后立即可见，无需重启</li>
+<li><strong>健康度</strong>：连续失败的 Skill 自动从匹配结果中过滤</li>
+</ol>
+
+<hr>
+
+<h2>问题四：Agent 跑一半挂了怎么办？（参考字节 Aime 论文）</h2>
+<p>我读了字节跳动 Aime 的论文（arxiv 2507.11988），里面有个核心概念叫 <strong>Progress Management</strong>——维护一个全局状态视图，让 Agent 随时知道"已经做了什么、下一步该做什么"。</p>
+<p>我实现了两个机制：</p>
+<h3>1. 进度跟踪（Progress Tracking）</h3>
+<p>每一步工具调用后，记录「已完成：XX → 结果」，拼成文本块注入系统提示。这样模型不会重复已经做过的事，也不会在多步任务中迷失方向。</p>
+<h3>2. 断点续跑（Checkpoint / Resume）</h3>
+<p>每一步执行后把 <code>turns</code>（对话历史）、步数、token 统计存成 JSON。如果任务中断（API 超时、进程被杀），下次加 <code>--resume</code> 参数就能从断点继续，不用从头跑。</p>
+<p>验证：用 <code>--max-steps 1</code> 跑一个 3 步任务 → 失败但留下 checkpoint → 加 <code>--resume</code> 续跑 → 从第 2 步继续并完成。</p>
+<pre><code>第1次(1步): ok=False steps=1
+有 checkpoint: True
+[resume] 从第 2 步继续，已有 1 步历史
+第2次(resume): ok=True steps=4
+checkpoint 已清除: True</code></pre>
+
+<hr>
+
+<h2>附带产出：零额度回归测试</h2>
+<p>开发过程中遇到一个现实问题：每次跑 19 任务全量回归都烧免费 API 额度，很快就 429 了。</p>
+<p>解法是写了个 <code>MockLLMClient</code>，用预设脚本替代真实模型，接口完全一致。这样：</p>
+<ul>
+<li>每次代码改动后跑 <code>bench.py --mock</code>，19 任务 0.4 秒全过，0 tokens</li>
+<li>只有做效果实验时才调真实 API</li>
+<li>并行调用、失败预算、记忆注入、断点续跑这些链路都能在 Mock 下验证</li>
+</ul>
+<p>这本身也是个工程能力的体现——<strong>可测试、可复现、省成本</strong>。</p>
+
+<hr>
+
+<h2>项目状态</h2>
+<ul>
+<li>P0 主循环 + 7 工具 + 19 任务 + 轨迹日志 ✅</li>
+<li>P1 上下文压缩 + 三层记忆（向量检索）+ 调度器 ✅</li>
+<li>P2 Skill 体系 + 自进化 + 健康度 ✅</li>
+<li>P3 进度跟踪 + 断点续跑 + 英文 README + 博客 ✅</li>
+</ul>
+<p>所有实验数据都在 <code>logs/</code> 里，实验记录在 <code>docs/experiments/</code>，每个结论都有原始 CSV 可查。</p>
+<p>如果你也在做 Agent 相关的项目，建议不要一上来就套框架。先自己实现一遍主循环、上下文、记忆，跑几组对照实验，你会对"Agent 到底为什么能 work"有完全不同的理解。</p>
+
+</body>
+</html>
