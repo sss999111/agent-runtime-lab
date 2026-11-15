@@ -82,16 +82,26 @@ class Agent:
         self.skill_registry = skill_registry
 
     def run(self, task: str, resume: bool = False) -> dict:
+        """执行一次任务，返回 {ok, answer, steps, tokens, elapsed_ms, log}。
+
+        核心流程：
+        1. 组装系统提示（记忆 + 工具说明 + 匹配的 Skill + 进度）
+        2. 循环：调模型 → 解析 JSON → 调工具 → 把结果塞回对话 → 继续
+        3. 模型输出 finish 或跑满 max_steps 时结束
+        """
         from runtime.memory import memory_store
 
+        # turns 记录每一轮的「模型输出 + 工具结果」，就是对话历史
         turns: list[dict] = []
         tokens = {"prompt_tokens": 0, "completion_tokens": 0}
+        # 失败预算：同一个工具调用连续失败 2 次就提示换方法
         failure_budget = FailureBudget(max_repeat=2)
+        # 进度跟踪：记录每步做了什么，拼成「已完成/下一步」注入提示
         progress = ProgressTracker()
         start_step = 1
         started = time.perf_counter()
 
-        # 断点恢复：从 checkpoint 加载 turns 和步数
+        # 断点恢复：如果之前跑过这个任务且没完成，从 checkpoint 加载历史
         if resume and checkpoint_manager.has(task):
             ckpt = checkpoint_manager.load(task)
             if ckpt:
@@ -103,10 +113,13 @@ class Agent:
                     progress.record(turn.get("tool", ""), turn.get("observation", ""), "")
                 print(f"[resume] 从第 {start_step} 步继续，已有 {len(turns)} 步历史")
 
+        # 长期记忆：把相关的事实和近期任务拼到系统提示最前面
+        # 向量检索会优先返回和当前任务最相关的事实
         memory_block = memory_store.build_block(task)
         system_prompt = f"{memory_block}\n\n{SYSTEM_PROMPT}"
 
-        # 注入匹配到的 skill（打法手册）
+        # Skill 匹配：按任务关键词找对应的打法手册，注入系统提示
+        # 比如提到 "csv" 就注入 csv_sum 的 playbook
         matched_skills: list = []
         if self.skill_registry is not None:
             matched_skills = self.skill_registry.match(task)
@@ -127,11 +140,13 @@ class Agent:
         )
 
         for step in range(start_step, self.max_steps + 1):
-            # 每步注入当前进度（全局状态视图，对齐 Aime 的 Progress Management）
+            # 每步重新组装消息：系统提示(含进度) + 任务 + 历史轮次
+            # 进度块让模型知道「已经做了什么，下一步该做什么」
             progress_block = progress.build_block()
             step_system_prompt = f"{system_prompt}\n\n{progress_block}" if progress_block else system_prompt
             messages = self.context.build(step_system_prompt, task, turns)
             context_chars = sum(len(message["content"]) for message in messages)
+            # 调模型（真实 API 或 Mock）
             reply = self.client.chat(messages)
             usage = reply.get("usage") or {}
             tokens["prompt_tokens"] += usage.get("prompt_tokens", 0)
@@ -208,16 +223,19 @@ class Agent:
                 )
                 continue
 
+            # 执行工具调用：单个直接调，多个用线程池并行
             observations = execute_parallel(calls) if len(calls) > 1 else [run_tool(*_call_name_args(calls[0]))]
             tool_names = [_call_name_args(c)[0] for c in calls]
             tool_args_list = [_call_name_args(c)[1] for c in calls]
 
+            # 把多个工具的结果合并成一段文本
             combined_obs = (
                 observations[0]
                 if len(calls) == 1
                 else format_observations(calls, observations)
             )
 
+            # 失败预算：同一个签名的调用连续失败 2 次，追加提示让模型换方法
             any_failed = any(
                 obs.startswith(("参数不正确", "工具执行失败", "未知工具", "工具执行超时", "工具执行异常"))
                 for obs in observations
