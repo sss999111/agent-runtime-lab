@@ -1,0 +1,9 @@
+{
+  "id": "task_019",
+  "prompt": "读取 workspace/config.json 获取 retries 和 timeout 的值，再读取 workspace/notes.md 的全部内容，然后在 workspace/out 下创建 config_summary.md，内容包含：config 里的 retries 值、timeout 值，以及 notes.md 的条目数量。",
+  "verify": {
+    "type": "file_contains_all",
+    "path": "out/config_summary.md",
+    "expect": ["retries", "3", "timeout", "30", "6"]
+  }
+}

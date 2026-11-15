@@ -6,8 +6,10 @@ import json
 import re
 import time
 
+from runtime.checkpoint import checkpoint_manager
 from runtime.context import ContextManager
 from runtime.llm import LLMClient
+from runtime.progress import ProgressTracker
 from runtime.scheduler import FailureBudget, execute_parallel, format_observations
 from runtime.skills import SkillRegistry
 from runtime.tools import TOOL_SPECS, run_tool
@@ -79,13 +81,28 @@ class Agent:
         self.context = ContextManager(client, tracer, strategy=strategy, window=window)
         self.skill_registry = skill_registry
 
-    def run(self, task: str) -> dict:
+    def run(self, task: str, resume: bool = False) -> dict:
         from runtime.memory import memory_store
 
         turns: list[dict] = []
         tokens = {"prompt_tokens": 0, "completion_tokens": 0}
         failure_budget = FailureBudget(max_repeat=2)
+        progress = ProgressTracker()
+        start_step = 1
         started = time.perf_counter()
+
+        # 断点恢复：从 checkpoint 加载 turns 和步数
+        if resume and checkpoint_manager.has(task):
+            ckpt = checkpoint_manager.load(task)
+            if ckpt:
+                turns = ckpt["turns"]
+                tokens = ckpt["tokens"]
+                start_step = ckpt["step"] + 1
+                # 恢复进度
+                for turn in turns:
+                    progress.record(turn.get("tool", ""), turn.get("observation", ""), "")
+                print(f"[resume] 从第 {start_step} 步继续，已有 {len(turns)} 步历史")
+
         memory_block = memory_store.build_block(task)
         system_prompt = f"{memory_block}\n\n{SYSTEM_PROMPT}"
 
@@ -109,8 +126,11 @@ class Agent:
             }
         )
 
-        for step in range(1, self.max_steps + 1):
-            messages = self.context.build(system_prompt, task, turns)
+        for step in range(start_step, self.max_steps + 1):
+            # 每步注入当前进度（全局状态视图，对齐 Aime 的 Progress Management）
+            progress_block = progress.build_block()
+            step_system_prompt = f"{system_prompt}\n\n{progress_block}" if progress_block else system_prompt
+            messages = self.context.build(step_system_prompt, task, turns)
             context_chars = sum(len(message["content"]) for message in messages)
             reply = self.client.chat(messages)
             usage = reply.get("usage") or {}
@@ -144,6 +164,12 @@ class Agent:
                 answer = str((parsed.get("finish") or {}).get("answer", ""))
                 elapsed = (time.perf_counter() - started) * 1000
                 memory_store.add_episode(task, "完成", answer, step)
+                # 任务成功：记录 skill 成功率并清除检查点
+                if self.skill_registry is not None and matched_skills:
+                    self.skill_registry.record_outcome(
+                        [s.name for s in matched_skills], success=True
+                    )
+                checkpoint_manager.clear(task)
                 self.tracer.log(
                     {
                         "event": "finish",
@@ -227,9 +253,21 @@ class Agent:
                     "observation": combined_obs,
                 }
             )
+            # 更新进度跟踪
+            progress.record(",".join(tool_names), combined_obs, parsed.get("thought", ""))
+            # 保存检查点（断点续跑）
+            checkpoint_manager.save(task, step, turns, tokens)
+
+        # 任务结束：记录 skill 成功率（无论成功失败）
+        if self.skill_registry is not None and matched_skills:
+            self.skill_registry.record_outcome(
+                [s.name for s in matched_skills],
+                success=False,  # 跑出循环说明失败
+            )
 
         elapsed = (time.perf_counter() - started) * 1000
         memory_store.add_episode(task, "失败", "超过最大步数", self.max_steps)
+        # 注意：失败时不清除 checkpoint，方便下次用 --resume 续跑
         self.tracer.log(
             {
                 "event": "finish",

@@ -1,0 +1,9 @@
+{
+  "id": "task_017",
+  "prompt": "读取 workspace/sales.csv 和 workspace/data/orders.csv，计算两个文件的总销售额之和，然后在 workspace/out 下创建 sales_report.md，内容包含一个 markdown 表格，列出两个数据源各自的总额和合计，最后一行写合计数字。",
+  "verify": {
+    "type": "file_contains_all",
+    "path": "out/sales_report.md",
+    "expect": ["sales", "orders", "1060.75"]
+  }
+}

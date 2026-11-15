@@ -28,6 +28,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_SKILLS_DIR = ROOT / "skills"
+STATS_PATH = ROOT / "workspace" / ".memory" / "skill_stats.json"
 
 
 @dataclass
@@ -59,12 +60,56 @@ class Skill:
 class SkillRegistry:
     """管理所有 Skill 的加载、匹配、启用与创建。"""
 
-    def __init__(self, skills_dir: Path | str | None = None) -> None:
+    def __init__(self, skills_dir: Path | str | None = None, min_success_rate: float = 0.3, min_samples: int = 3) -> None:
         self.skills_dir = Path(skills_dir) if skills_dir else DEFAULT_SKILLS_DIR
         self.skills_dir.mkdir(parents=True, exist_ok=True)
         self._skills: dict[str, Skill] = {}
         self._enabled: set[str] = set()
+        # 成功率统计：{name: {"success": int, "total": int}}
+        self._stats: dict[str, dict[str, int]] = self._load_stats()
+        self.min_success_rate = min_success_rate
+        self.min_samples = min_samples
         self.reload()
+
+    def _load_stats(self) -> dict[str, dict[str, int]]:
+        if not STATS_PATH.exists():
+            return {}
+        try:
+            return json.loads(STATS_PATH.read_text(encoding="utf-8"))
+        except (json.JSONDecodeError, OSError):
+            return {}
+
+    def _save_stats(self) -> None:
+        STATS_PATH.parent.mkdir(parents=True, exist_ok=True)
+        STATS_PATH.write_text(json.dumps(self._stats, ensure_ascii=False, indent=2), encoding="utf-8")
+
+    def record_outcome(self, skill_names: list[str], success: bool) -> None:
+        """记录匹配到的 skill 在本次任务中的成功/失败。"""
+        for name in skill_names:
+            if name not in self._stats:
+                self._stats[name] = {"success": 0, "total": 0}
+            self._stats[name]["total"] += 1
+            if success:
+                self._stats[name]["success"] += 1
+        self._save_stats()
+
+    def success_rate(self, name: str) -> float | None:
+        """返回某个 skill 的成功率，样本不足返回 None。"""
+        stat = self._stats.get(name)
+        if not stat or stat["total"] < self.min_samples:
+            return None
+        return stat["success"] / stat["total"]
+
+    def is_healthy(self, name: str) -> bool:
+        """skill 是否健康（样本不足视为健康，只有足够样本且成功率低于阈值才不健康）。"""
+        rate = self.success_rate(name)
+        if rate is None:
+            return True
+        return rate >= self.min_success_rate
+
+    @property
+    def stats(self) -> dict[str, dict[str, int]]:
+        return dict(self._stats)
 
     def reload(self) -> int:
         """重新扫描 skills 目录，返回加载到的 skill 数量。已存在的 skill 状态保留。"""
@@ -114,8 +159,11 @@ class SkillRegistry:
         return name not in self._enabled
 
     def match(self, text: str) -> list[Skill]:
-        """按触发词从已启用的 skill 中匹配，返回命中的列表。"""
-        return [s for s in self.enabled_skills if s.matches(text)]
+        """按触发词从已启用且健康的 skill 中匹配，返回命中的列表。"""
+        return [
+            s for s in self.enabled_skills
+            if s.matches(text) and self.is_healthy(s.name)
+        ]
 
     def build_prompt_block(self, skills: list[Skill]) -> str:
         """把匹配到的 skill 拼成系统提示里的注入文本。"""

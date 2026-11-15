@@ -1,0 +1,9 @@
+{
+  "id": "task_018",
+  "prompt": "阅读 workspace/reports/quarterly.md，提取其中提到的三个主要风险，按严重程度从高到低排列，在 workspace/out 下创建 risks.md，每行一个风险，格式为「序号. 风险名称」。",
+  "verify": {
+    "type": "file_contains_all",
+    "path": "out/risks.md",
+    "expect": ["数据合规", "模型幻觉", "成本失控"]
+  }
+}

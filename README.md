@@ -22,6 +22,10 @@ Every claim is backed by run traces in `logs/`. No hand-waving.
 | **Three-layer memory** | With long-term memory: **4/4** tasks pass in 2.5 steps; without: **0/2** exhaust 8 steps | `docs/experiments/002-memory.md` |
 | **Scheduler** | Parallel tool calls verified; `FailureBudget` stops repeated failed calls after 2 repeats | `docs/experiments/003-scheduler.md` |
 | **Skills** | Manifest-based playbooks injected by trigger match; `learn_skill` self-evolves new skills to disk | `docs/experiments/004-skills.md` |
+| **Progress tracking** | Per-step progress state injected into system prompt (inspired by ByteDance Aime's Progress Management) | `docs/experiments/005-advanced.md` |
+| **Checkpoint / resume** | Save agent state mid-task, resume from breakpoint with `--resume` | `docs/experiments/005-advanced.md` |
+| **Skill health** | Auto-disable skills whose success rate drops below threshold after ≥3 samples | `docs/experiments/005-advanced.md` |
+| **Vector memory** | Character n-gram + cosine similarity retrieves the most relevant facts (not just latest N) | `docs/experiments/005-advanced.md` |
 
 ## Architecture
 
@@ -31,11 +35,13 @@ run_task.py / bench.py
         ▼
    Agent (ReAct loop)
         │
-        ├── ContextManager  → full / window / state_card / summary
-        ├── MemoryStore     → L1 working / L2 episodic / L3 long-term facts
-        ├── SkillRegistry   → match by triggers, inject playbook, hot-plug, self-evolve
-        ├── Scheduler       → execute_parallel + FailureBudget
-        └── Tools           → read_file / write_file / list_files / run_python / http_get / remember / learn_skill
+        ├── ContextManager   → full / window / state_card / summary
+        ├── MemoryStore      → L1 working / L2 episodic / L3 long-term facts (vector retrieval)
+        ├── ProgressTracker  → per-step "done / next" state (Aime-style)
+        ├── CheckpointManager→ save / resume task state
+        ├── SkillRegistry    → match by triggers, inject playbook, health-based filter, self-evolve
+        ├── Scheduler        → execute_parallel + FailureBudget
+        └── Tools            → read_file / write_file / list_files / run_python / http_get / remember / learn_skill
 ```
 
 ## Quick start
@@ -50,7 +56,10 @@ D:\Trae-CN\tools\python\python.exe scripts\smoke_ark.py
 # 3. Run a single task
 D:\Trae-CN\tools\python\python.exe run_task.py evals\tasks\task_001.json
 
-# 4. Run full benchmark (16 tasks)
+# 3b. Resume from a checkpoint (if a previous run was interrupted)
+D:\Trae-CN\tools\python\python.exe run_task.py evals\tasks\task_001.json --resume
+
+# 4. Run full benchmark (19 tasks)
 D:\Trae-CN\tools\python\python.exe bench.py --reset-memory
 ```
 
@@ -58,11 +67,11 @@ Python is a portable install at `D:\Trae-CN\tools\python\python.exe`; no system 
 
 ## Zero-cost regression
 
-All 16 tasks support `--mock` mode, which uses scripted responses instead of calling the real LLM — full pipeline coverage with **0 API tokens**:
+All 19 tasks support `--mock` mode, which uses scripted responses instead of calling the real LLM — full pipeline coverage with **0 API tokens**:
 
 ```powershell
 D:\Trae-CN\tools\python\python.exe bench.py --mock --reset-memory
-# → 16/16 passed, 0 tokens, 0.3s
+# → 19/19 passed, 0 tokens, 0.4s
 ```
 
 Use this for every code change; reserve real API calls for effect experiments only.
@@ -73,14 +82,16 @@ Use this for every code change; reserve real API calls for effect experiments on
 runtime/
   agent.py        ReAct main loop (action / actions / finish)
   context.py      4 context assembly strategies
-  memory.py       three-layer memory (facts.jsonl / episodic.jsonl)
+  memory.py       three-layer memory + vector retrieval (char n-gram cosine)
+  progress.py     per-step progress state (Aime-style Progress Management)
+  checkpoint.py   save / resume task state
   scheduler.py    parallel execution + FailureBudget
-  skills.py       Skill manifest loader, registry, self-evolution
+  skills.py       Skill manifest loader, registry, health stats, self-evolution
   tools.py        7 tools, paths sandboxed to workspace/
   llm.py          Volcano Ark (Doubao) OpenAI-compatible client
   mock_llm.py     scripted mock LLM for zero-quota regression
   trace.py        per-step JSONL trace logger
-evals/tasks/      16 auto-gradable tasks
+evals/tasks/      19 auto-gradable tasks
 skills/           skill manifests (each a subdir with manifest.json)
 logs/             run traces (the only trusted data source)
 docs/experiments/ experiment records with raw numbers

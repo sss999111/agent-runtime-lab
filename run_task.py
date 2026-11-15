@@ -62,6 +62,7 @@ def main() -> int:
     parser.add_argument("--max-steps", type=int, default=8)
     parser.add_argument("--strategy", default="full", choices=["full", "window", "state_card", "summary"])
     parser.add_argument("--mock", action="store_true", help="用预设脚本跑，不消耗 API 额度")
+    parser.add_argument("--resume", action="store_true", help="从检查点恢复执行")
     args = parser.parse_args()
 
     task = json.loads(Path(args.task_file).read_text(encoding="utf-8"))
@@ -70,7 +71,7 @@ def main() -> int:
     agent = Agent(client, tracer, max_steps=args.max_steps, strategy=args.strategy, skill_registry=skill_registry)
 
     try:
-        result = agent.run(task["prompt"])
+        result = agent.run(task["prompt"], resume=args.resume)
     finally:
         tracer.close()
 

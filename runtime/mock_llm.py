@@ -93,6 +93,27 @@ SCRIPTS: dict[str, list[str]] = {
         json.dumps({"thought": "用 learn_skill 把 JSON 配置处理打法沉淀为技能", "action": {"tool": "learn_skill", "args": {"name": "json_config_handler", "description": "读取 JSON 配置并提取或换算字段", "triggers": "json,config,配置", "playbook": "1. 用 read_file 读取 JSON 配置文件\n2. 解析目标字段\n3. 按要求换算或提取后写出结果"}}}),
         json.dumps({"thought": "技能已创建", "finish": {"answer": "已创建 json_config_handler 技能"}}),
     ],
+    "task_017": [
+        json.dumps({"thought": "并行读取两个 CSV 文件", "actions": [
+            {"tool": "read_file", "args": {"path": "sales.csv"}},
+            {"tool": "read_file", "args": {"path": "data/orders.csv"}},
+        ]}),
+        json.dumps({"thought": "计算两个文件的总额并生成 markdown 报告", "action": {"tool": "run_python", "args": {"code": "sales=1000.0\norders=60.75\nmd='''# 销售报告\\n\\n| 数据源 | 总额 |\\n|---|---|\\n| sales | 1000.0 |\\n| orders | 60.75 |\\n| 合计 | 1060.75 |\\n'''\nopen('out/sales_report.md','w',encoding='utf-8').write(md)\nprint('done')"}}}),
+        json.dumps({"thought": "报告已生成", "finish": {"answer": "已生成 sales_report.md"}}),
+    ],
+    "task_018": [
+        json.dumps({"thought": "读取季度报告提取风险", "action": {"tool": "read_file", "args": {"path": "reports/quarterly.md"}}}),
+        json.dumps({"thought": "按严重程度排序并写入 risks.md", "action": {"tool": "write_file", "args": {"path": "out/risks.md", "content": "1. 数据合规\\n2. 模型幻觉\\n3. 成本失控\\n"}}}),
+        json.dumps({"thought": "风险清单已生成", "finish": {"answer": "已生成 risks.md"}}),
+    ],
+    "task_019": [
+        json.dumps({"thought": "读取 config.json 和 notes.md", "actions": [
+            {"tool": "read_file", "args": {"path": "config.json"}},
+            {"tool": "read_file", "args": {"path": "notes.md"}},
+        ]}),
+        json.dumps({"thought": "生成配置摘要", "action": {"tool": "write_file", "args": {"path": "out/config_summary.md", "content": "# 配置摘要\\n\\n- retries: 3\\n- timeout: 30\\n- notes 条目数量: 6\\n"}}}),
+        json.dumps({"thought": "摘要已生成", "finish": {"answer": "已生成 config_summary.md"}}),
+    ],
 }
 
 
@@ -114,6 +135,9 @@ _TASK_KEYWORDS: dict[str, str] = {
     "task_014": "out/codename.txt",
     "task_015": "out/two_sums.txt",
     "task_016": "json_config_handler",
+    "task_017": "sales_report.md",
+    "task_018": "risks.md",
+    "task_019": "config_summary.md",
 }
 
 

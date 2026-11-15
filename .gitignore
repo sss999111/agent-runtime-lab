@@ -9,5 +9,6 @@ __pycache__/
 # 运行时生成
 workspace/out/
 workspace/.memory/
+workspace/.checkpoints/
 logs/
 
