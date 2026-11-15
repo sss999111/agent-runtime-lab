@@ -1,0 +1,10 @@
+{
+  "id": "task_003",
+  "prompt": "读取 data/orders.csv，把 amount 这一列的所有数字加起来，把结果写到 out/orders_total.txt，文件里只写数字。",
+  "verify": {
+    "type": "file_number",
+    "path": "out/orders_total.txt",
+    "expect": 60.75,
+    "tolerance": 0.01
+  }
+}

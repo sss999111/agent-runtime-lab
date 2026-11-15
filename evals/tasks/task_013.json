@@ -1,0 +1,8 @@
+{
+  "id": "task_013",
+  "prompt": "调用 remember 工具，把下面这条事实写入长期记忆：项目代号是 Phoenix。写完后结束。",
+  "verify": {
+    "type": "memory_contains",
+    "expect": ["Phoenix"]
+  }
+}

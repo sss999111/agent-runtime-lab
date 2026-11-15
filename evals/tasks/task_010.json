@@ -1,0 +1,9 @@
+{
+  "id": "task_010",
+  "prompt": "列出 data 目录下所有 csv 文件的文件名，每行一个，写到 out/data_csv.txt。",
+  "verify": {
+    "type": "file_contains_all",
+    "path": "out/data_csv.txt",
+    "expect": ["orders.csv", "raw.csv"]
+  }
+}

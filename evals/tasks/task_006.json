@@ -1,0 +1,10 @@
+{
+  "id": "task_006",
+  "prompt": "用 run_python 工具计算 1 到 100 所有整数的和，把结果写到 out/sum100.txt，文件里只写数字。",
+  "verify": {
+    "type": "file_number",
+    "path": "out/sum100.txt",
+    "expect": 5050,
+    "tolerance": 0
+  }
+}

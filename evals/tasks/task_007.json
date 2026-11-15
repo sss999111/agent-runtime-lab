@@ -1,0 +1,9 @@
+{
+  "id": "task_007",
+  "prompt": "读取 inbox 目录下的 quarter.md 和 tech.md，把两个文件第一行的标题分别写到 out/titles.txt，每行一个，只写标题文字不要井号。",
+  "verify": {
+    "type": "file_contains_all",
+    "path": "out/titles.txt",
+    "expect": ["季度复盘", "技术方案"]
+  }
+}

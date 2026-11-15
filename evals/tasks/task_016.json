@@ -1,0 +1,9 @@
+{
+  "id": "task_016",
+  "prompt": "你刚才学会了一个处理 JSON 配置文件的打法。请用 learn_skill 工具把它沉淀为一个名叫 json_config_handler 的技能，描述是「读取 JSON 配置并提取或换算字段」，触发词是 json,config,配置，playbook 里写清楚先 read_file 再解析字段最后写出结果。",
+  "verify": {
+    "type": "file_contains_all",
+    "path": "../skills/json_config_handler/manifest.json",
+    "expect": ["json_config_handler", "读取 JSON 配置", "read_file"]
+  }
+}

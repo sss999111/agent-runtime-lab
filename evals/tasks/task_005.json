@@ -1,0 +1,10 @@
+{
+  "id": "task_005",
+  "prompt": "读取 config.json，把 retries 的值乘以 2，把结果写到 out/retries.txt，文件里只写数字。",
+  "verify": {
+    "type": "file_number",
+    "path": "out/retries.txt",
+    "expect": 6,
+    "tolerance": 0
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "name": "markdown_extract",
+  "description": "从 markdown 报告中提取指定信息（风险点、标题、优先级等）",
+  "version": "1.0",
+  "triggers": ["报告", "风险", "markdown", "md", "优先", "标题"],
+  "tools": ["read_file", "write_file"],
+  "playbook": "步骤：\n1. 用 read_file 读取 markdown 文件。\n2. 在内容中定位目标段落（如「风险」「建议」「优先」等关键词附近）。\n3. 提取要求的信息，用 write_file 写入输出文件，只写名称不要多余内容。\n注意：如果有多个条目，每行一个。"
+}

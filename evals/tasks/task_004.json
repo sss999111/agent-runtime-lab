@@ -1,0 +1,9 @@
+{
+  "id": "task_004",
+  "prompt": "找出工作区里所有的 csv 文件，把它们的文件名（不含路径）每行一个写到 out/csv_files.txt。",
+  "verify": {
+    "type": "file_contains_all",
+    "path": "out/csv_files.txt",
+    "expect": ["sales.csv", "orders.csv"]
+  }
+}

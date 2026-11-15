@@ -1,0 +1,12 @@
+{
+  "name": "json_config_handler",
+  "description": "读取 JSON 配置并提取或换算字段",
+  "version": "1.0",
+  "triggers": [
+    "json",
+    "config",
+    "配置"
+  ],
+  "playbook": "1. 用 read_file 读取 JSON 配置文件\n2. 解析目标字段\n3. 按要求换算或提取后写出结果",
+  "tools": []
+}

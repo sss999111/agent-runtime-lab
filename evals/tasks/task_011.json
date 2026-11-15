@@ -1,0 +1,9 @@
+{
+  "id": "task_011",
+  "prompt": "阅读 reports/quarterly.md，找出报告里列出的全部三个风险点，把每个风险点的名称写到 out/risks.txt，每行一个，只写名称。",
+  "verify": {
+    "type": "file_contains_all",
+    "path": "out/risks.txt",
+    "expect": ["数据合规", "模型幻觉", "成本失控"]
+  }
+}

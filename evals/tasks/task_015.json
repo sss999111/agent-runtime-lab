@@ -1,0 +1,9 @@
+{
+  "id": "task_015",
+  "prompt": "读取 sales.csv 的 total 总和，以及 orders.csv 的 amount 总和。两个文件的读取互相独立，可以同时进行。把两个和按 'sales总和,orders总和' 的格式写到 out/two_sums.txt。",
+  "verify": {
+    "type": "file_contains_all",
+    "path": "out/two_sums.txt",
+    "expect": ["1000", "60.75"]
+  }
+}

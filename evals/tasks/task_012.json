@@ -1,0 +1,9 @@
+{
+  "id": "task_012",
+  "prompt": "阅读 reports/quarterly.md，找出作者建议优先处理的那个风险，把它的名称写到 out/priority.txt，文件里只写名称。",
+  "verify": {
+    "type": "file_contains_all",
+    "path": "out/priority.txt",
+    "expect": ["数据合规"]
+  }
+}

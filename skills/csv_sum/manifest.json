@@ -1,0 +1,8 @@
+{
+  "name": "csv_sum",
+  "description": "对 CSV 文件的某一列求和",
+  "version": "1.0",
+  "triggers": ["csv", "求和", "sum", "total", "amount", "总和"],
+  "tools": ["read_file", "run_python", "write_file"],
+  "playbook": "步骤：\n1. 用 read_file 读取目标 CSV，确认表头和目标列名。\n2. 用 run_python 执行：import csv; rows = list(csv.DictReader(open('文件名'))); print(sum(float(r['列名']) for r in rows))\n3. 用 write_file 把结果写入输出文件，文件里只写数字。\n注意：先观察数据再计算，列名要和 CSV 表头完全一致。"
+}

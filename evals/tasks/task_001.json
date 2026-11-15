@@ -1,0 +1,10 @@
+{
+  "id": "task_001",
+  "prompt": "读取工作区里的 sales.csv，把 total 这一列的所有数字加起来，把最终总和写到 out/total.txt，文件里只写数字。",
+  "verify": {
+    "type": "file_number",
+    "path": "out/total.txt",
+    "expect": 1000,
+    "tolerance": 0.01
+  }
+}

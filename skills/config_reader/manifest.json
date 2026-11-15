@@ -1,0 +1,13 @@
+{
+  "name": "config_reader",
+  "description": "读取 config.json 并换算字段值",
+  "version": "1.0",
+  "triggers": [
+    "config",
+    "配置",
+    "retries",
+    "timeout"
+  ],
+  "playbook": "1. read_file config.json\n2. 找到目标字段\n3. 按要求换算后写出",
+  "tools": []
+}

@@ -1,0 +1,9 @@
+{
+  "id": "task_014",
+  "prompt": "把项目代号写到 out/codename.txt，文件里只写代号，写完读回确认再结束。",
+  "verify": {
+    "type": "file_contains_all",
+    "path": "out/codename.txt",
+    "expect": ["Phoenix"]
+  }
+}

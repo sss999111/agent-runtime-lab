@@ -1,0 +1,10 @@
+{
+  "id": "task_002",
+  "prompt": "读取工作区里的 notes.md，统计有多少行是以「- 」开头的列表项，把数量写到 out/line_count.txt，文件里只写数字。",
+  "verify": {
+    "type": "file_number",
+    "path": "out/line_count.txt",
+    "expect": 6,
+    "tolerance": 0
+  }
+}

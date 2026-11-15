@@ -1,0 +1,10 @@
+{
+  "id": "task_008",
+  "prompt": "读取 data/raw.csv，去掉完全重复的行和空行，统计剩余的数据行数（不含表头），把数量写到 out/dedup_count.txt，文件里只写数字。",
+  "verify": {
+    "type": "file_number",
+    "path": "out/dedup_count.txt",
+    "expect": 3,
+    "tolerance": 0
+  }
+}

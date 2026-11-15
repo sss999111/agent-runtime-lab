@@ -1,0 +1,10 @@
+{
+  "id": "task_009",
+  "prompt": "读取 config.json 里的 timeout 值，把它换算成秒数（乘以 60），把结果写到 out/timeout_seconds.txt，文件里只写数字。",
+  "verify": {
+    "type": "file_number",
+    "path": "out/timeout_seconds.txt",
+    "expect": 1800,
+    "tolerance": 0
+  }
+}
