@@ -11,4 +11,5 @@ workspace/out/
 workspace/.memory/
 workspace/.checkpoints/
 logs/
+debug.log
 
