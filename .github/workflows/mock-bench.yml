@@ -1,0 +1,25 @@
+name: mock-bench
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  regression:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      # 纯标准库实现，无需安装依赖；Mock 模式不调用真实模型，零额度
+      - name: Run mock regression (19 tasks x 4 strategies)
+        run: python bench.py --mock --reset-memory
+
+      - name: Print efficiency summary
+        run: python stats.py --markdown
+        continue-on-error: true

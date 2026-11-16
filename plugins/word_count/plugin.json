@@ -1,0 +1,5 @@
+{
+  "name": "word_count",
+  "description": "统计工作区内某个文本文件的行数、词数与字符数。参数：path",
+  "args_hint": "{\"path\": \"notes.md\"}"
+}

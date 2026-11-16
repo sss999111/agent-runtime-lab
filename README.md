@@ -26,8 +26,31 @@ Every claim is backed by run traces in `logs/`. No hand-waving.
 | **Checkpoint / resume** | Save agent state mid-task, resume from breakpoint with `--resume` | `docs/experiments/005-advanced.md` |
 | **Skill health** | Auto-disable skills whose success rate drops below threshold after ≥3 samples | `docs/experiments/005-advanced.md` |
 | **Vector memory** | Character n-gram + cosine similarity retrieves the most relevant facts (not just latest N) | `docs/experiments/005-advanced.md` |
+| **Plugin registry** | Drop `plugins/<name>/plugin.json` + `plugin.py` into the repo and the tool is callable by the loop (e.g. `word_count`) | `runtime/plugins.py`, `plugins/word_count/` |
+| **Efficiency** | 29 real-model runs: 5510 tokens/task, P50 10.0 s, P95 19.0 s; `summary` strategy 167 s P50 | `stats.py`, `docs/experiments/006-efficiency.md` |
 
 ## Architecture
+
+```mermaid
+flowchart TD
+    U[User task / bench.py] --> A[Agent: ReAct loop]
+
+    A --> C[ContextManager<br/>full / window / state_card / summary]
+    A --> M[MemoryStore<br/>working / episodic / long-term facts]
+    A --> P[ProgressTracker<br/>done & next per step]
+    A --> K[CheckpointManager<br/>save & resume]
+    A --> S[SkillRegistry<br/>trigger match · health filter · self-evolve]
+    A --> Q[Scheduler<br/>parallel calls · FailureBudget]
+    A --> T[Tools + PluginRegistry<br/>built-in tools · plugins/ directory]
+
+    C --> L[LLMClient<br/>Ark / Doubao · or mock_llm]
+    M --> L
+    A --> L
+
+    L --> R[Trace JSONL<br/>step · tool · tokens · latency]
+    R --> B[bench CSV]
+    B --> X[stats.py<br/>pass rate · steps · tokens · P50/P95]
+```
 
 ```
 run_task.py / bench.py
@@ -41,8 +64,24 @@ run_task.py / bench.py
         ├── CheckpointManager→ save / resume task state
         ├── SkillRegistry    → match by triggers, inject playbook, health-based filter, self-evolve
         ├── Scheduler        → execute_parallel + FailureBudget
+        ├── PluginRegistry   → drop a folder into plugins/ to add a new tool
         └── Tools            → read_file / write_file / list_files / run_python / http_get / remember / learn_skill
 ```
+
+## Efficiency metrics
+
+`stats.py` aggregates every `logs/bench_*.csv` into pass rate, average steps, token cost and P50/P95 latency (Mock runs are excluded from token/latency percentiles):
+
+```powershell
+D:\Trae-CN\tools\python\python.exe stats.py --markdown
+D:\Trae-CN\tools\python\python.exe stats.py --markdown --price-in 0.8 --price-out 2.0   # 元 / 百万 tokens
+```
+
+Measured on real-model runs (29 samples, `full` strategy): average **5510 tokens/task**, **P50 10.0 s**, **P95 19.0 s**; `summary` strategy rises to **P50 167 s** — consistent with the 14× overhead seen in the ablation.
+
+## Tech survey
+
+Why build a minimal runtime instead of adopting a framework, and what would be adopted for production: see [`docs/tech-survey.md`](docs/tech-survey.md) (LangGraph / OpenAI Agents SDK / Agent Skills comparison).
 
 ## Quick start
 
@@ -87,14 +126,19 @@ runtime/
   checkpoint.py   save / resume task state
   scheduler.py    parallel execution + FailureBudget
   skills.py       Skill manifest loader, registry, health stats, self-evolution
-  tools.py        7 tools, paths sandboxed to workspace/
+  plugins.py      plugin registry (plugins/<name>/plugin.json + plugin.py)
+  tools.py        7 built-in tools + plugins, paths sandboxed to workspace/
   llm.py          Volcano Ark (Doubao) OpenAI-compatible client
   mock_llm.py     scripted mock LLM for zero-quota regression
   trace.py        per-step JSONL trace logger
 evals/tasks/      19 auto-gradable tasks
 skills/           skill manifests (each a subdir with manifest.json)
+plugins/          tool plugins (drop a folder to add a tool)
 logs/             run traces (the only trusted data source)
 docs/experiments/ experiment records with raw numbers
+docs/tech-survey.md  framework comparison and build-vs-adopt decision
+stats.py          pass rate / steps / tokens / P50-P95 from bench CSVs
+.github/workflows/mock-bench.yml   CI: mock regression on every push
 ```
 
 ## Status

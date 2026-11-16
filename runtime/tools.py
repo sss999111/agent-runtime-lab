@@ -117,6 +117,11 @@ _TOOLS = {
     "learn_skill": learn_skill,
 }
 
+# 插件在工具表就绪后装载：plugins/<name>/ 放进目录即可新增工具
+from runtime.plugins import plugin_registry  # noqa: E402
+
+plugin_registry.register_into(TOOL_SPECS, ARG_HINTS, _TOOLS)
+
 
 def run_tool(name: str, args: dict) -> str:
     """执行工具调用，失败时把错误作为观察结果返回给模型。"""
