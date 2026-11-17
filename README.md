@@ -19,7 +19,7 @@ This project builds an agent runtime from scratch (no framework, pure Python std
 | Module | Finding | Evidence |
 |---|---|---|
 | **Context compression** | `state_card` cuts input tokens by **34%** with zero success-rate drop over 6 runs (task_011/012 x 3), only +18% latency | `docs/experiments/001-context-compression.md` |
-| **Three-layer memory** | `task_014` (answer exists only in memory): **2/2** pass in 2.5 steps with long-term memory, **0/2** exhaust 8 steps without | `docs/experiments/002-memory.md` |
+| **Three-layer memory** | `task_014` (fact stored only in memory): **2/2** pass in 3 steps when the fact is recalled; **0/2** in the no-memory control (8-step limit) | `docs/experiments/002-memory.md`, `docs/experiments/007-failure-analysis.md` |
 | **Scheduler** | Parallel tool calls verified; `FailureBudget` stops repeated failed calls after 2 repeats | `docs/experiments/003-scheduler.md` |
 | **Skills** | Manifest-based playbooks injected by trigger match; `learn_skill` self-evolves new skills to disk | `docs/experiments/004-skills.md` |
 | **Progress tracking** | Per-step progress state injected into system prompt (inspired by ByteDance Aime's Progress Management) | `docs/experiments/005-advanced.md` |
@@ -62,15 +62,16 @@ run_task.py / bench.py
 
 | Strategy | Runs | Pass | Real Samples | Avg Tokens | P50 (s) | P95 (s) |
 |---|---|---|---|---|---|---|
-| full *(mixed tasks)* | 29 | **16/29 (55%)** | 29 | 5510 | 10.0 | 19.0 |
-| state_card *(long-text tasks 011/012 only)* | 8 | 8/8 | 8 | 11547 | 11.9 | 18.5 |
+| full *(4 tasks only: 011/012/013/014)* | 29 | **16/29 (55%)** | 29 | 5510 | 10.0 | 19.0 |
+| state_card *(tasks 011/012; 8 runs incl. 2 warm-up)* | 8 | 8/8 | 8 | 11547 | 11.9 | 18.5 |
 | summary | 2 | 2/2 | 2 | 13958 | 167.1 | 192.6 |
 | window | 2 | 2/2 | 2 | 12753 | 14.9 | 18.0 |
 
 **Caveats (not hidden):**
 - Strategies were run on **different task subsets** at different times, so pass rates are not directly comparable between rows.
-- The ablation in `docs/experiments/001-context-compression.md` matched `full` vs `state_card` on the **same** 2 tasks (task_011/012, 3 runs each = 6 runs per strategy) - that is where the "zero success-rate drop" and "-34% tokens" claims come from, not this aggregate table.
-- Baseline `full` passed 16/29 (55%); the 13 failures are concentrated in open-ended writing tasks (task_014, which the model cannot reliably complete within the step limit) - see the step-by-step failure analysis in [`docs/experiments/007-failure-analysis.md`](docs/experiments/007-failure-analysis.md).
+- The ablation in `docs/experiments/001-context-compression.md` matched `full` vs `state_card` on the **same** 2 tasks (task_011/012), 6 runs each after dropping the first warm-up pair. That is where "-34% tokens" comes from: 15,670 vs 10,323 prompt tokens per task. This aggregate table is **not** that comparison.
+- **The 55% is not a 19-task pass rate.** All 29 real-model `full` runs cover only 4 tasks: 011 (3 runs), 012 (3), 013 (8), 014 (15). `task_014` accounts for 13 of the 13 failures, so read it as "task_014 is hard", not "the runtime fails half the suite". Step-by-step analysis: [`docs/experiments/007-failure-analysis.md`](docs/experiments/007-failure-analysis.md).
+- The memory control group was **not fully clean**: `workspace/out/` is not reset between runs, so the file written by the memory group survived into the no-memory group. The control did reach `Phoenix` at step 7 and still failed - documented in 007 rather than hidden.
 - Real quota hit `SetLimitExceeded` after 29 full-strategy samples, so `state_card` / `window` / `summary` have smaller samples - known gap.
 - **Sample sizes are small** (6 runs for the compression ablation; 2 + 2 comparable runs for the memory test). Treat these as directional signals, not statistically significant results.
 - `summary` is slow (P50 167 s) because every compression step triggers an extra LLM call. With only 2 runs this is a directional observation, not a stable measurement.
