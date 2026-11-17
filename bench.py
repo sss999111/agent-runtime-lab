@@ -34,6 +34,7 @@ def main() -> int:
     parser.add_argument("--window", type=int, default=4)
     parser.add_argument("--max-steps", type=int, default=8)
     parser.add_argument("--reset-memory", action="store_true", help="运行前清空长期记忆和情景轨迹")
+    parser.add_argument("--reset-out", action="store_true", help="运行前清空 workspace/out/，避免上一次运行的产物污染本次评测")
     parser.add_argument("--mock", action="store_true", help="用预设脚本跑，不消耗 API 额度")
     args = parser.parse_args()
 
@@ -41,6 +42,14 @@ def main() -> int:
         from runtime.memory import memory_store
 
         memory_store.clear()
+
+    if args.reset_out:
+        import shutil
+
+        out_dir = ROOT / "workspace" / "out"
+        if out_dir.exists():
+            shutil.rmtree(out_dir)
+            print("已清空 workspace/out/")
 
     task_files = sorted(TASK_DIR.glob("*.json"))
     if args.tasks:

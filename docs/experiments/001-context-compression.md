@@ -18,6 +18,8 @@ python bench.py --strategy summary   --tasks task_011,task_012 --window 2 --repe
 
 `state_card` 的一次 `window=4` 试运行（`bench_state_card_20261115_181702.csv`）未纳入主表，因为窗口大小不同。
 
+说明：`logs/` 中 `state_card` 共 8 次运行，其中 180702 / 181837 两批各 1 次 `task_011` + 1 次 `task_012` 属于早期冒烟测试，**未纳入对比**；本文表格使用上述 `--repeat 3` 产生的 6 次。`full` 同样取 6 次。
+
 ## 数据来源
 
 所有数字来自 `logs/` 下的 CSV 明细，每行一次任务执行：

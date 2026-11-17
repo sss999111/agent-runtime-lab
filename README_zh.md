@@ -27,7 +27,7 @@
 | **Skill 健康度** | 成功率 < 30% 且样本 >= 3 的 skill 自动禁用 | `docs/experiments/005-advanced.md` |
 | **向量记忆** | 字符 n-gram + 余弦相似度检索最相关事实 | `docs/experiments/005-advanced.md` |
 | **插件注册表** | 在 `plugins/` 下放一个文件夹即可作为新工具被主循环调用 | `runtime/plugins.py`, `plugins/word_count/` |
-| **效率指标** | 29 次真实模型跑批：平均 5510 tokens/任务，P50 10.0s，P95 19.0s；`summary` 策略 P50 达 167s | `docs/efficiency-data/`, `stats.py`, `docs/experiments/006-efficiency.md` |
+| **效率指标** | 29 次真实模型跑批（4 个任务）：平均 5510 tokens/任务，P50 10.0s，P95 19.0s；`summary` 策略 P50 达 167s | `docs/efficiency-data/`, `stats.py`, `docs/experiments/006-efficiency.md` |
 
 ## 架构
 

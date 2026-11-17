@@ -27,7 +27,7 @@ This project builds an agent runtime from scratch (no framework, pure Python std
 | **Skill health** | Auto-disable skills whose success rate drops below threshold after >=3 samples | `docs/experiments/005-advanced.md` |
 | **Vector memory** | Character n-gram + cosine similarity retrieves the most relevant facts (not just latest N) | `docs/experiments/005-advanced.md` |
 | **Plugin registry** | Drop `plugins/<name>/plugin.json` + `plugin.py` into the repo and the tool is callable by the loop (e.g. `word_count`) | `runtime/plugins.py`, `plugins/word_count/` |
-| **Efficiency** | 29 real-model runs: 5510 tokens/task, P50 10.0 s, P95 19.0 s; `summary` strategy 167 s P50 | `docs/efficiency-data/`, `stats.py`, `docs/experiments/006-efficiency.md` |
+| **Efficiency** | 29 real-model runs over 4 tasks: 5510 tokens/task, P50 10.0 s, P95 19.0 s; `summary` strategy 167 s P50 | `docs/efficiency-data/`, `stats.py`, `docs/experiments/006-efficiency.md` |
 
 ## Architecture
 

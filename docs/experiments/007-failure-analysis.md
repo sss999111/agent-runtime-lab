@@ -99,7 +99,7 @@ config.json → notes.md → inbox/tech.md → inbox/quarter.md → reports/quar
 
 ## 实际起作用的改进
 
-**长期记忆注入**是唯一真正解决问题的改动，且效果直接：
+**长期记忆注入**是目前唯一经过对照验证的改动，效果直接：
 
 - 有记忆：第 1 步即拿到代号，3 步结束，1,916 prompt tokens
 - 无记忆：8 步耗尽，8,661 prompt tokens（**4.5 倍**开销，且仍然失败）
@@ -110,13 +110,15 @@ config.json → notes.md → inbox/tech.md → inbox/quarter.md → reports/quar
 
 在还原轨迹时发现两处需要说明的地方，如实记录：
 
-### 1. `workspace/out/` 跨运行残留
+### 1. `workspace/out/` 跨运行残留（已修复）
 
 `bench.py` 的 `--reset-memory` 只清理记忆，**不清理 `workspace/out/`**。因此有记忆组跑完后写入的 `out/codename.txt`，会残留到无记忆组。这导致无记忆组第 1 步就能在文件列表里看到目标文件。
 
 影响：本任务的失败**不是**因为文件不存在，而是因为模型没有优先去看它。这个残留反而让失败案例更有分析价值——它排除了"文件缺失"这个解释。
 
 但作为评测设计，这是一个缺陷：**依赖产物存在的任务，应当在每次运行前重置输出目录**，否则任务之间会互相污染。
+
+**已修复**：`bench.py` 新增 `--reset-out` 参数，运行前清空 `workspace/out/`。`python bench.py --mock --reset-memory --reset-out` 已验证 19/19 通过、0 tokens、0.6 秒。真实重跑仍受 API 额度限制，但代码侧已就绪，额度恢复后一条命令即可。
 
 ### 2. 部分历史 trace 与当前任务定义不对应
 
