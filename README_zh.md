@@ -18,7 +18,7 @@
 
 | 模块 | 结论 | 证据 |
 |---|---|---|
-| **上下文压缩** | `state_card` 输入 token 降 **34%**，自身 8 任务集成功率不掉，耗时仅 +18% | `docs/experiments/001-context-compression.md` |
+| **上下文压缩** | `state_card` 输入 token 降 **34%**，在 task_011/012 上各跑 3 次、6 次全部通过，耗时仅 +18% | `docs/experiments/001-context-compression.md` |
 | **三层记忆** | 有记忆 4/4 通过（2.5 步），无记忆 0/2 跑满 8 步 | `docs/experiments/002-memory.md` |
 | **调度器** | 并行调用通路验证；失败预算连续 2 次失败后强制换方法 | `docs/experiments/003-scheduler.md` |
 | **Skill** | manifest 按触发词注入；`learn_skill` 自进化写盘 | `docs/experiments/004-skills.md` |
@@ -58,6 +58,8 @@ run_task.py / bench.py
 
 `stats.py` 聚合 `logs/bench_*.csv` 的数据。Mock 行（`prompt_tokens = 0`）不计入 token/延迟百分位，真实数据不被污染。
 
+> **看这张表要小心：** 它聚合了全部运行，但各策略跑的是**不同任务子集**，所以每任务 token 不能横向比较。同任务对比见下方消融实验（task_011/012 各 3 次）。
+
 | 策略 | 运行次数 | 通过 | 真实样本 | 平均 token | P50 (s) | P95 (s) |
 |---|---|---|---|---|---|---|
 | full | 29 | **16/29 (55%)** | 29 | 5510 | 10.0 | 19.0 |
@@ -67,9 +69,10 @@ run_task.py / bench.py
 
 **坦诚说明：**
 - 各策略在不同时间、不同任务子集上运行，通过率不能直接横比。
-- `docs/experiments/001-context-compression.md` 中的消融实验让 `full` vs `state_card` 在**同一批 12 个任务**上对比 —— 那里才是「成功率不掉、token -34%」的来源，不是上表。
+- `docs/experiments/001-context-compression.md` 中的消融实验让 `full` vs `state_card` 在**同样 2 个任务**（task_011/012，各 3 次共 6 次）上对比 —— 那里才是「成功率不掉、token -34%」的来源，不是上表。
 - 基线 `full` 通过率 16/29 (55%)；13 次失败集中在开放式写作任务（task_014）— 每任务分析见 `docs/experiments/005-advanced.md`。
 - 真实验证跑了 29 次 full 策略样本后触发 `SetLimitExceeded`，`state_card` / `window` / `summary` 样本少 —— 已知缺口。
+- **样本量偏小**（压缩消融 6 次运行；记忆实验 4 + 2 次）。这些只能作为方向性信号，不足以支撑统计显著性结论。
 
 ## 快速开始
 

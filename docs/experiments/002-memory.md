@@ -6,7 +6,7 @@
 
 ## 实现
 
-- `runtime/memory.py`：`MemoryStore`，长期事实存 `workspace/.memory/facts.jsonl`，情景轨迹存 `workspace/.memory/episodic.jsonl`。当前按最近顺序取前 N 条，不做向量化。
+- `runtime/memory.py`：`MemoryStore`，长期事实存 `workspace/.memory/facts.jsonl`，情景轨迹存 `workspace/.memory/episodic.jsonl`。长期事实按字符 n-gram 余弦相似度检索，只注入 top-k 相关条目；情景轨迹按最近 N 条取。该检索基于字面相似度，不是语义 embedding。
 - `runtime/tools.py`：新增 `remember(content)` 工具，让 Agent 显式写入长期事实。
 - `runtime/agent.py`：任务开始时把记忆块拼到**系统提示**最前面；任务结束时自动把任务摘要写入情景轨迹。
 
@@ -39,6 +39,6 @@ python bench.py --reset-memory --tasks task_014 --repeat 2
 
 ## 局限
 
-- 没有向量化检索，只取最近 N 条，任务量大了会召回无关事实。
+- 检索用的是字符 n-gram 字面相似度而不是语义 embedding：同义改写（如「代号」vs「别名」）召回不佳，事实量大时仍需重排或引入真正的向量模型。
 - 没有重要性评分和遗忘机制，所有事实平等保留。
 - 对照组跑满 8 步，说明模型在信息缺失时不会主动承认不知道，而是浪费步数试探——这正是调度器要解决的问题。

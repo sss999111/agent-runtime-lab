@@ -13,3 +13,6 @@ workspace/.checkpoints/
 logs/
 debug.log
 
+# 仅本地使用，不发布到仓库
+docs/resume-project.md
+docs/demo-script.md

@@ -18,7 +18,7 @@ This project builds an agent runtime from scratch (no framework, pure Python std
 
 | Module | Finding | Evidence |
 |---|---|---|
-| **Context compression** | `state_card` cuts input tokens by **34%** with zero success-rate drop on its own 8-task set, only +18% latency | `docs/experiments/001-context-compression.md` |
+| **Context compression** | `state_card` cuts input tokens by **34%** with zero success-rate drop over 6 runs (task_011/012 x 3), only +18% latency | `docs/experiments/001-context-compression.md` |
 | **Three-layer memory** | With long-term memory: **4/4** tasks pass in 2.5 steps; without: **0/2** exhaust 8 steps | `docs/experiments/002-memory.md` |
 | **Scheduler** | Parallel tool calls verified; `FailureBudget` stops repeated failed calls after 2 repeats | `docs/experiments/003-scheduler.md` |
 | **Skills** | Manifest-based playbooks injected by trigger match; `learn_skill` self-evolves new skills to disk | `docs/experiments/004-skills.md` |
@@ -58,6 +58,8 @@ run_task.py / bench.py
 
 `stats.py` aggregates `logs/bench_*.csv`. Mock rows (`prompt_tokens = 0`) are excluded from token and latency percentiles, so real numbers are never contaminated.
 
+> **Read this table with care:** it aggregates every run across *different task subsets*, so per-task token counts are **not** comparable between rows. The matched ablation (task_011/012 x 3 runs) is described below.
+
 | Strategy | Runs | Pass | Real Samples | Avg Tokens | P50 (s) | P95 (s) |
 |---|---|---|---|---|---|---|
 | full | 29 | **16/29 (55%)** | 29 | 5510 | 10.0 | 19.0 |
@@ -67,9 +69,10 @@ run_task.py / bench.py
 
 **Caveats (not hidden):**
 - Strategies were run on **different task subsets** at different times, so pass rates are not directly comparable between rows.
-- The ablation in `docs/experiments/001-context-compression.md` matched `full` vs `state_card` on the **same** 12 tasks - that is where the "zero success-rate drop" and "-34% tokens" claims come from, not this aggregate table.
+- The ablation in `docs/experiments/001-context-compression.md` matched `full` vs `state_card` on the **same** 2 tasks (task_011/012, 3 runs each = 6 runs per strategy) - that is where the "zero success-rate drop" and "-34% tokens" claims come from, not this aggregate table.
 - Baseline `full` passed 16/29 (55%); the 13 failures are concentrated in open-ended writing tasks (task_014, which the model cannot reliably complete within the step limit) - see per-task analysis in `docs/experiments/005-advanced.md`.
 - Real quota hit `SetLimitExceeded` after 29 full-strategy samples, so `state_card` / `window` / `summary` have smaller samples - known gap.
+- **Sample sizes are small** (6 runs for the compression ablation; 4 + 2 for the memory test). Treat these as directional signals, not statistically significant results.
 
 ## Tech survey
 
