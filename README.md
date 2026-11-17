@@ -70,7 +70,7 @@ run_task.py / bench.py
 **Caveats (not hidden):**
 - Strategies were run on **different task subsets** at different times, so pass rates are not directly comparable between rows.
 - The ablation in `docs/experiments/001-context-compression.md` matched `full` vs `state_card` on the **same** 2 tasks (task_011/012, 3 runs each = 6 runs per strategy) - that is where the "zero success-rate drop" and "-34% tokens" claims come from, not this aggregate table.
-- Baseline `full` passed 16/29 (55%); the 13 failures are concentrated in open-ended writing tasks (task_014, which the model cannot reliably complete within the step limit) - see per-task analysis in `docs/experiments/005-advanced.md`.
+- Baseline `full` passed 16/29 (55%); the 13 failures are concentrated in open-ended writing tasks (task_014, which the model cannot reliably complete within the step limit) - see the step-by-step failure analysis in [`docs/experiments/007-failure-analysis.md`](docs/experiments/007-failure-analysis.md).
 - Real quota hit `SetLimitExceeded` after 29 full-strategy samples, so `state_card` / `window` / `summary` have smaller samples - known gap.
 - **Sample sizes are small** (6 runs for the compression ablation; 2 + 2 comparable runs for the memory test). Treat these as directional signals, not statistically significant results.
 - `summary` is slow (P50 167 s) because every compression step triggers an extra LLM call. With only 2 runs this is a directional observation, not a stable measurement.

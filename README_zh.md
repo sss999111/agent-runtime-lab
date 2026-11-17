@@ -70,7 +70,7 @@ run_task.py / bench.py
 **坦诚说明：**
 - 各策略在不同时间、不同任务子集上运行，通过率不能直接横比。
 - `docs/experiments/001-context-compression.md` 中的消融实验让 `full` vs `state_card` 在**同样 2 个任务**（task_011/012，各 3 次共 6 次）上对比 —— 那里才是「成功率不掉、token -34%」的来源，不是上表。
-- 基线 `full` 通过率 16/29 (55%)；13 次失败集中在开放式写作任务（task_014）— 每任务分析见 `docs/experiments/005-advanced.md`。
+- 基线 `full` 通过率 16/29 (55%)；13 次失败集中在开放式写作任务（task_014）— 逐步失败分析见 [`docs/experiments/007-failure-analysis.md`](docs/experiments/007-failure-analysis.md)。
 - 真实验证跑了 29 次 full 策略样本后触发 `SetLimitExceeded`，`state_card` / `window` / `summary` 样本少 —— 已知缺口。
 - **样本量偏小**（压缩消融 6 次运行；记忆实验可比的 2 + 2 次）。这些只能作为方向性信号，不足以支撑统计显著性结论。
 - `summary` 慢（P50 167 秒）是因为每次压缩都要多调一次模型；只有 2 次运行，属于方向性观察，不是稳定测量。
