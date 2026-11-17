@@ -24,7 +24,7 @@ This project builds an agent runtime from scratch (no framework, pure Python std
 | **Skills** | Manifest-based playbooks injected by trigger match; `learn_skill` self-evolves new skills to disk | `docs/experiments/004-skills.md` |
 | **Progress tracking** | Per-step progress state injected into system prompt (inspired by ByteDance Aime's Progress Management) | `docs/experiments/005-advanced.md` |
 | **Checkpoint / resume** | Save agent state mid-task, resume from breakpoint with `--resume` | `docs/experiments/005-advanced.md` |
-| **Skill health** | Auto-disable skills whose success rate drops below threshold after ≥3 samples | `docs/experiments/005-advanced.md` |
+| **Skill health** | Auto-disable skills whose success rate drops below threshold after >=3 samples | `docs/experiments/005-advanced.md` |
 | **Vector memory** | Character n-gram + cosine similarity retrieves the most relevant facts (not just latest N) | `docs/experiments/005-advanced.md` |
 | **Plugin registry** | Drop `plugins/<name>/plugin.json` + `plugin.py` into the repo and the tool is callable by the loop (e.g. `word_count`) | `runtime/plugins.py`, `plugins/word_count/` |
 | **Efficiency** | 29 real-model runs: 5510 tokens/task, P50 10.0 s, P95 19.0 s; `summary` strategy 167 s P50 | `docs/efficiency-data/`, `stats.py`, `docs/experiments/006-efficiency.md` |
@@ -33,18 +33,18 @@ This project builds an agent runtime from scratch (no framework, pure Python std
 
 ```
 run_task.py / bench.py
-        │
-        ▼
+        |
+        v
    Agent (ReAct loop)
-        │
-        ├── ContextManager   → full / window / state_card / summary
-        ├── MemoryStore      → L1 working / L2 episodic / L3 long-term facts (vector retrieval)
-        ├── ProgressTracker  → per-step "done / next" state (Aime-style)
-        ├── CheckpointManager→ save / resume task state
-        ├── SkillRegistry    → match by triggers, inject playbook, health-based filter, self-evolve
-        ├── Scheduler        → execute_parallel + FailureBudget
-        ├── PluginRegistry   → drop a folder into plugins/ to add a new tool
-        └── Tools            → read_file / write_file / list_files / run_python / http_get / remember / learn_skill
+        |
+        +-- ContextManager   -> full / window / state_card / summary
+        +-- MemoryStore      -> L1 working / L2 episodic / L3 long-term facts (vector retrieval)
+        +-- ProgressTracker  -> per-step "done / next" state (Aime-style)
+        +-- CheckpointManager-> save / resume task state
+        +-- SkillRegistry    -> match by triggers, inject playbook, health-based filter, self-evolve
+        +-- Scheduler        -> execute_parallel + FailureBudget
+        +-- PluginRegistry   -> drop a folder into plugins/ to add a new tool
+        +-- Tools            -> read_file / write_file / list_files / run_python / http_get / remember / learn_skill
 ```
 
 ## Efficiency metrics
@@ -53,8 +53,8 @@ run_task.py / bench.py
 
 | What | Where | Purpose |
 |---|---|---|
-| **Real-model evidence** | [`docs/efficiency-data/`](docs/efficiency-data/) — 20 bench CSVs + summary | Measured token/latency, P50/P95 — used in README claims |
-| **Mock regression** | `logs/` (gitignored, recreated per run) | Zero-quota smoke test + CI gate — proves pipeline runs, not model quality |
+| **Real-model evidence** | [`docs/efficiency-data/`](docs/efficiency-data/) - 20 bench CSVs + summary | Measured token/latency, P50/P95 - used in README claims |
+| **Mock regression** | `logs/` (gitignored, recreated per run) | Zero-quota smoke test + CI gate - proves pipeline runs, not model quality |
 
 `stats.py` aggregates `logs/bench_*.csv`. Mock rows (`prompt_tokens = 0`) are excluded from token and latency percentiles, so real numbers are never contaminated.
 
@@ -67,9 +67,9 @@ run_task.py / bench.py
 
 **Caveats (not hidden):**
 - Strategies were run on **different task subsets** at different times, so pass rates are not directly comparable between rows.
-- The ablation in `docs/experiments/001-context-compression.md` matched `full` vs `state_card` on the **same** 12 tasks — that is where the "zero success-rate drop" and "-34% tokens" claims come from, not this aggregate table.
-- Baseline `full` passed 16/29 (55%); the 13 failures are concentrated in open-ended writing tasks (task_014, which the model cannot reliably complete within the step limit) — see per-task analysis in `docs/experiments/005-advanced.md`.
-- Real quota hit `SetLimitExceeded` after 29 full-strategy samples, so `state_card` / `window` / `summary` have smaller samples — known gap.
+- The ablation in `docs/experiments/001-context-compression.md` matched `full` vs `state_card` on the **same** 12 tasks - that is where the "zero success-rate drop" and "-34% tokens" claims come from, not this aggregate table.
+- Baseline `full` passed 16/29 (55%); the 13 failures are concentrated in open-ended writing tasks (task_014, which the model cannot reliably complete within the step limit) - see per-task analysis in `docs/experiments/005-advanced.md`.
+- Real quota hit `SetLimitExceeded` after 29 full-strategy samples, so `state_card` / `window` / `summary` have smaller samples - known gap.
 
 ## Tech survey
 
@@ -77,29 +77,29 @@ Why build a minimal runtime instead of adopting a framework, and what would be a
 
 ## Quick start
 
+Any Python 3.10+ works. The dev machine used a portable install (no system PATH) - replace the path below with yours.
+
 ```powershell
 # 1. Paste API key & model ID (writes .env automatically)
-D:\Trae-CN\tools\python\python.exe scripts\set_key.py
+python scripts/set_key.py
 
 # 2. Connectivity self-check
-D:\Trae-CN\tools\python\python.exe scripts\smoke_ark.py
+python scripts/smoke_ark.py
 
 # 3. Run a single task
-D:\Trae-CN\tools\python\python.exe run_task.py evals\tasks\task_001.json
+python run_task.py evals/tasks/task_001.json
 
 # 4. Run full benchmark (19 tasks)
-D:\Trae-CN\tools\python\python.exe bench.py --reset-memory
+python bench.py --reset-memory
 ```
-
-Python is a portable install at `D:\Trae-CN\tools\python\python.exe`; no system PATH dependency.
 
 ## Zero-cost regression
 
-All 19 tasks support `--mock` mode, which uses scripted responses instead of calling the real LLM — full pipeline coverage with **0 API tokens**:
+All 19 tasks support `--mock` mode, which uses scripted responses instead of calling the real LLM - full pipeline coverage with **0 API tokens**:
 
 ```powershell
-D:\Trae-CN\tools\python\python.exe bench.py --mock --reset-memory
-# → 19/19 passed, 0 tokens, 0.4s
+python bench.py --mock --reset-memory
+# -> 19/19 passed, 0 tokens, 0.4s
 ```
 
 Use this for every code change; reserve real API calls for effect experiments only.
