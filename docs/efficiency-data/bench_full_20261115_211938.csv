@@ -1,2 +1,2 @@
 strategy,task,run,passed,reason,steps,prompt_tokens,completion_tokens,elapsed_s,log
-full,task_014,1,False,实际内容：'本项目是一个通用任务型 Agent，能够通过调用工具自动完成用户交代的各类任务。',3,1402,364,6.5,D:\Trae-CN\agent-runtime-lab\logs\20261115_211932_task_014_r1.jsonl
+full,task_014,1,False,任务未完成,3,1402,364,6.5,./logs\20261115_211932_task_014_r1.jsonl

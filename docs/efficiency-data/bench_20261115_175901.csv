@@ -1,7 +1,7 @@
 task,passed,reason,steps,prompt_tokens,completion_tokens,elapsed_s,log
-task_001,True,1000.0 与预期 1000.0 一致,4,2049,386,7.4,D:\Trae-CN\agent-runtime-lab\logs\20261115_175821_task_001.jsonl
-task_002,True,6.0 与预期 6.0 一致,4,2061,369,6.6,D:\Trae-CN\agent-runtime-lab\logs\20261115_175828_task_002.jsonl
-task_003,True,60.75 与预期 60.75 一致,4,1916,288,6.0,D:\Trae-CN\agent-runtime-lab\logs\20261115_175835_task_003.jsonl
-task_004,True,包含全部 2 项,4,1823,309,6.1,D:\Trae-CN\agent-runtime-lab\logs\20261115_175841_task_004.jsonl
-task_005,True,6.0 与预期 6.0 一致,4,1855,249,6.4,D:\Trae-CN\agent-runtime-lab\logs\20261115_175847_task_005.jsonl
-task_006,True,5050.0 与预期 5050.0 一致,3,1386,374,7.8,D:\Trae-CN\agent-runtime-lab\logs\20261115_175853_task_006.jsonl
+task_001,True,1000.0 与预期 1000.0 一致,4,2049,386,7.4,./logs\20261115_175821_task_001.jsonl
+task_002,True,6.0 与预期 6.0 一致,4,2061,369,6.6,./logs\20261115_175828_task_002.jsonl
+task_003,True,60.75 与预期 60.75 一致,4,1916,288,6.0,./logs\20261115_175835_task_003.jsonl
+task_004,True,包含全部 2 项,4,1823,309,6.1,./logs\20261115_175841_task_004.jsonl
+task_005,True,6.0 与预期 6.0 一致,4,1855,249,6.4,./logs\20261115_175847_task_005.jsonl
+task_006,True,5050.0 与预期 5050.0 一致,3,1386,374,7.8,./logs\20261115_175853_task_006.jsonl

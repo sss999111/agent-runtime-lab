@@ -1,5 +1,5 @@
 strategy,task,run,passed,reason,steps,prompt_tokens,completion_tokens,elapsed_s,log
-full,task_013,1,True,记忆中包含全部 1 项,2,938,558,8.8,D:\Trae-CN\agent-runtime-lab\logs\20261115_212041_task_013_r1.jsonl
-full,task_013,2,True,记忆中包含全部 1 项,2,1136,613,9.9,D:\Trae-CN\agent-runtime-lab\logs\20261115_212050_task_013_r2.jsonl
-full,task_014,1,False,实际内容：'本项目是可通过调用标准化工具链完成文件处理、数据计算、网页抓取等各类通用任务的智能助手系统。',3,2077,567,10.0,D:\Trae-CN\agent-runtime-lab\logs\20261115_212100_task_014_r1.jsonl
-full,task_014,2,False,实际内容：'本项目是可通过调用标准化工具链完成文件处理、数据计算、网页抓取等各类通用任务的智能助手系统。',3,2301,934,13.9,D:\Trae-CN\agent-runtime-lab\logs\20261115_212110_task_014_r2.jsonl
+full,task_013,1,True,记忆中包含全部 1 项,2,938,558,8.8,./logs\20261115_212041_task_013_r1.jsonl
+full,task_013,2,True,记忆中包含全部 1 项,2,1136,613,9.9,./logs\20261115_212050_task_013_r2.jsonl
+full,task_014,1,False,任务未完成,3,2077,567,10.0,./logs\20261115_212100_task_014_r1.jsonl
+full,task_014,2,False,任务未完成,3,2301,934,13.9,./logs\20261115_212110_task_014_r2.jsonl

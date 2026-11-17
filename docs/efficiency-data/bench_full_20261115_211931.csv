@@ -1,3 +1,3 @@
 strategy,task,run,passed,reason,steps,prompt_tokens,completion_tokens,elapsed_s,log
-full,task_013,1,True,记忆中包含全部 1 项,2,890,577,13.5,D:\Trae-CN\agent-runtime-lab\logs\20261115_211909_task_013_r1.jsonl
-full,task_014,1,False,实际内容：'本项目是面向个人与小团队的轻量效率工具集，可一站式完成文档生成、数据整理与信息检索等日常任务，帮助用户减少重复劳动、提升',3,1778,434,8.3,D:\Trae-CN\agent-runtime-lab\logs\20261115_211923_task_014_r1.jsonl
+full,task_013,1,True,记忆中包含全部 1 项,2,890,577,13.5,./logs\20261115_211909_task_013_r1.jsonl
+full,task_014,1,False,任务未完成,3,1778,434,8.3,./logs\20261115_211923_task_014_r1.jsonl

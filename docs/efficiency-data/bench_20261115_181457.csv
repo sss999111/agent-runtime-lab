@@ -1,13 +1,13 @@
 task,passed,reason,steps,prompt_tokens,completion_tokens,elapsed_s,log
-task_001,True,1000.0 与预期 1000.0 一致,4,2268,686,10.9,D:\Trae-CN\agent-runtime-lab\logs\20261115_181303_task_001.jsonl
-task_002,True,6.0 与预期 6.0 一致,4,2070,590,9.7,D:\Trae-CN\agent-runtime-lab\logs\20261115_181314_task_002.jsonl
-task_003,True,60.75 与预期 60.75 一致,4,2041,448,8.9,D:\Trae-CN\agent-runtime-lab\logs\20261115_181324_task_003.jsonl
-task_004,True,包含全部 2 项,4,1875,477,8.9,D:\Trae-CN\agent-runtime-lab\logs\20261115_181333_task_004.jsonl
-task_005,True,6.0 与预期 6.0 一致,4,1866,297,6.7,D:\Trae-CN\agent-runtime-lab\logs\20261115_181341_task_005.jsonl
-task_006,True,5050.0 与预期 5050.0 一致,3,1553,970,13.6,D:\Trae-CN\agent-runtime-lab\logs\20261115_181348_task_006.jsonl
-task_007,True,包含全部 2 项,5,2544,289,7.0,D:\Trae-CN\agent-runtime-lab\logs\20261115_181402_task_007.jsonl
-task_008,True,3.0 与预期 3.0 一致,5,3374,796,11.1,D:\Trae-CN\agent-runtime-lab\logs\20261115_181409_task_008.jsonl
-task_009,True,1800.0 与预期 1800.0 一致,4,1888,268,5.4,D:\Trae-CN\agent-runtime-lab\logs\20261115_181420_task_009.jsonl
-task_010,True,包含全部 2 项,4,1826,399,7.0,D:\Trae-CN\agent-runtime-lab\logs\20261115_181425_task_010.jsonl
-task_011,True,包含全部 3 项,5,12373,624,10.9,D:\Trae-CN\agent-runtime-lab\logs\20261115_181432_task_011.jsonl
-task_012,True,包含全部 1 项,6,17759,826,13.4,D:\Trae-CN\agent-runtime-lab\logs\20261115_181443_task_012.jsonl
+task_001,True,1000.0 与预期 1000.0 一致,4,2268,686,10.9,./logs\20261115_181303_task_001.jsonl
+task_002,True,6.0 与预期 6.0 一致,4,2070,590,9.7,./logs\20261115_181314_task_002.jsonl
+task_003,True,60.75 与预期 60.75 一致,4,2041,448,8.9,./logs\20261115_181324_task_003.jsonl
+task_004,True,包含全部 2 项,4,1875,477,8.9,./logs\20261115_181333_task_004.jsonl
+task_005,True,6.0 与预期 6.0 一致,4,1866,297,6.7,./logs\20261115_181341_task_005.jsonl
+task_006,True,5050.0 与预期 5050.0 一致,3,1553,970,13.6,./logs\20261115_181348_task_006.jsonl
+task_007,True,包含全部 2 项,5,2544,289,7.0,./logs\20261115_181402_task_007.jsonl
+task_008,True,3.0 与预期 3.0 一致,5,3374,796,11.1,./logs\20261115_181409_task_008.jsonl
+task_009,True,1800.0 与预期 1800.0 一致,4,1888,268,5.4,./logs\20261115_181420_task_009.jsonl
+task_010,True,包含全部 2 项,4,1826,399,7.0,./logs\20261115_181425_task_010.jsonl
+task_011,True,包含全部 3 项,5,12373,624,10.9,./logs\20261115_181432_task_011.jsonl
+task_012,True,包含全部 1 项,6,17759,826,13.4,./logs\20261115_181443_task_012.jsonl
