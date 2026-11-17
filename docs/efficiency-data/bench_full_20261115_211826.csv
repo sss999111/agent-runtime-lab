@@ -1,0 +1,3 @@
+strategy,task,run,passed,reason,steps,prompt_tokens,completion_tokens,elapsed_s,log
+full,task_013,1,True,记忆中包含全部 1 项,2,862,164,3.9,D:\Trae-CN\agent-runtime-lab\logs\20261115_211816_task_013_r1.jsonl
+full,task_014,1,False,实际内容：'本项目是一个通用任务型 Agent，能够通过调用工具自动完成文件处理、数据计算与网页抓取等常见任务。',3,1639,256,5.3,D:\Trae-CN\agent-runtime-lab\logs\20261115_211820_task_014_r1.jsonl

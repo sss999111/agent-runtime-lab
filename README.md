@@ -70,14 +70,27 @@ run_task.py / bench.py
 
 ## Efficiency metrics
 
-`stats.py` aggregates every `logs/bench_*.csv` into pass rate, average steps, token cost and P50/P95 latency (Mock runs are excluded from token/latency percentiles):
+**Data sources are strictly separated:**
+
+| What | Where | Purpose |
+|---|---|---|
+| **Real-model evidence** | [`docs/efficiency-data/`](docs/efficiency-data/) — 20 bench CSVs + summary | Measured token/latency, P50/P95 — used in README claims |
+| **Mock regression** | `logs/` (gitignored, recreated per run) | Zero-quota smoke test + CI gate — proves pipeline runs, not model quality |
+
+`stats.py` aggregates `logs/bench_*.csv`. Mock rows (`prompt_tokens = 0`) are excluded from token and latency percentiles, so real numbers are never contaminated.
 
 ```powershell
 D:\Trae-CN\tools\python\python.exe stats.py --markdown
-D:\Trae-CN\tools\python\python.exe stats.py --markdown --price-in 0.8 --price-out 2.0   # 元 / 百万 tokens
 ```
 
-Measured on real-model runs (29 samples, `full` strategy): average **5510 tokens/task**, **P50 10.0 s**, **P95 19.0 s**; `summary` strategy rises to **P50 167 s** — consistent with the 14× overhead seen in the ablation.
+| Strategy | Runs | Pass | Real Samples | Avg Tokens | P50 (s) | P95 (s) |
+|---|---|---|---|---|---|---|
+| full | 29 | 16/29 | 29 | 5510 | 10.0 | 19.0 |
+| state_card | 8 | 8/8 | 8 | 11547 | 11.9 | 18.5 |
+| summary | 2 | 2/2 | 2 | 13958 | 167.1 | 192.6 |
+| window | 2 | 2/2 | 2 | 12753 | 14.9 | 18.0 |
+
+Measured on real-model runs (Volcano Ark `doubao-seed-2-1-lite-260915`, 2026-11-15). The `full` strategy is the only one with the full 29-sample ablation; `summary` P50 167 s confirms the 14× overhead; the quota hit `SetLimitExceeded` after those runs, so `state_card` / `window` / `summary` have smaller samples — known gap, not hidden.
 
 ## Tech survey
 

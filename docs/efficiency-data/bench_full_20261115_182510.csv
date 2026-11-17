@@ -1,0 +1,5 @@
+strategy,task,run,passed,reason,steps,prompt_tokens,completion_tokens,elapsed_s,log
+full,task_011,1,True,包含全部 3 项,5,12318,494,10.7,D:\Trae-CN\agent-runtime-lab\logs\20261115_182423_task_011_r1.jsonl
+full,task_011,2,True,包含全部 3 项,5,12237,451,9.0,D:\Trae-CN\agent-runtime-lab\logs\20261115_182434_task_011_r2.jsonl
+full,task_012,1,True,包含全部 1 项,8,26564,888,16.4,D:\Trae-CN\agent-runtime-lab\logs\20261115_182443_task_012_r1.jsonl
+full,task_012,2,True,包含全部 1 项,5,12253,536,10.8,D:\Trae-CN\agent-runtime-lab\logs\20261115_182459_task_012_r2.jsonl

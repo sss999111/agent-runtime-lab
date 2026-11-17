@@ -1,0 +1,7 @@
+task,passed,reason,steps,prompt_tokens,completion_tokens,elapsed_s,log
+task_001,True,1000.0 与预期 1000.0 一致,4,2041,454,7.4,D:\Trae-CN\agent-runtime-lab\logs\20261115_175549_task_001.jsonl
+task_002,False,得到 6.0，预期 5.0,4,2067,387,7.5,D:\Trae-CN\agent-runtime-lab\logs\20261115_175556_task_002.jsonl
+task_003,True,60.75 与预期 60.75 一致,4,1938,307,6.1,D:\Trae-CN\agent-runtime-lab\logs\20261115_175604_task_003.jsonl
+task_004,True,包含全部 2 项,4,1799,308,5.9,D:\Trae-CN\agent-runtime-lab\logs\20261115_175610_task_004.jsonl
+task_005,True,6.0 与预期 6.0 一致,4,1856,276,5.5,D:\Trae-CN\agent-runtime-lab\logs\20261115_175616_task_005.jsonl
+task_006,True,5050.0 与预期 5050.0 一致,3,1402,478,8.6,D:\Trae-CN\agent-runtime-lab\logs\20261115_175621_task_006.jsonl
