@@ -12,14 +12,14 @@ This project builds an agent runtime from scratch (no framework, pure Python std
 2. On which tasks does three-layer memory actually help, and where is it pure overhead?
 3. As the Skill library grows, how much do on-demand loading and self-evolution each contribute?
 
-**Every claim is backed by run traces.** Real-model CSVs live in [`docs/efficiency-data/`](docs/efficiency-data/); mock regression traces are recreated per run in `logs/` (gitignored). No hand-waving.
+**Every claim is backed by run traces.** Real-model CSVs live in [`docs/efficiency-data/`](docs/efficiency-data/); mock regression traces are recreated per run in `logs/` (gitignored). Sample sizes are stated explicitly for every claim.
 
 ## Key results
 
 | Module | Finding | Evidence |
 |---|---|---|
 | **Context compression** | `state_card` cuts input tokens by **34%** with zero success-rate drop over 6 runs (task_011/012 x 3), only +18% latency | `docs/experiments/001-context-compression.md` |
-| **Three-layer memory** | With long-term memory: **4/4** tasks pass in 2.5 steps; without: **0/2** exhaust 8 steps | `docs/experiments/002-memory.md` |
+| **Three-layer memory** | `task_014` (answer exists only in memory): **2/2** pass in 2.5 steps with long-term memory, **0/2** exhaust 8 steps without | `docs/experiments/002-memory.md` |
 | **Scheduler** | Parallel tool calls verified; `FailureBudget` stops repeated failed calls after 2 repeats | `docs/experiments/003-scheduler.md` |
 | **Skills** | Manifest-based playbooks injected by trigger match; `learn_skill` self-evolves new skills to disk | `docs/experiments/004-skills.md` |
 | **Progress tracking** | Per-step progress state injected into system prompt (inspired by ByteDance Aime's Progress Management) | `docs/experiments/005-advanced.md` |
@@ -62,8 +62,8 @@ run_task.py / bench.py
 
 | Strategy | Runs | Pass | Real Samples | Avg Tokens | P50 (s) | P95 (s) |
 |---|---|---|---|---|---|---|
-| full | 29 | **16/29 (55%)** | 29 | 5510 | 10.0 | 19.0 |
-| state_card | 8 | 8/8 | 8 | 11547 | 11.9 | 18.5 |
+| full *(mixed tasks)* | 29 | **16/29 (55%)** | 29 | 5510 | 10.0 | 19.0 |
+| state_card *(long-text tasks 011/012 only)* | 8 | 8/8 | 8 | 11547 | 11.9 | 18.5 |
 | summary | 2 | 2/2 | 2 | 13958 | 167.1 | 192.6 |
 | window | 2 | 2/2 | 2 | 12753 | 14.9 | 18.0 |
 
@@ -72,7 +72,8 @@ run_task.py / bench.py
 - The ablation in `docs/experiments/001-context-compression.md` matched `full` vs `state_card` on the **same** 2 tasks (task_011/012, 3 runs each = 6 runs per strategy) - that is where the "zero success-rate drop" and "-34% tokens" claims come from, not this aggregate table.
 - Baseline `full` passed 16/29 (55%); the 13 failures are concentrated in open-ended writing tasks (task_014, which the model cannot reliably complete within the step limit) - see per-task analysis in `docs/experiments/005-advanced.md`.
 - Real quota hit `SetLimitExceeded` after 29 full-strategy samples, so `state_card` / `window` / `summary` have smaller samples - known gap.
-- **Sample sizes are small** (6 runs for the compression ablation; 4 + 2 for the memory test). Treat these as directional signals, not statistically significant results.
+- **Sample sizes are small** (6 runs for the compression ablation; 2 + 2 comparable runs for the memory test). Treat these as directional signals, not statistically significant results.
+- `summary` is slow (P50 167 s) because every compression step triggers an extra LLM call. With only 2 runs this is a directional observation, not a stable measurement.
 
 ## Tech survey
 
@@ -139,5 +140,5 @@ stats.py          pass rate / steps / tokens / P50-P95 from bench CSVs
 - [x] P0: ReAct loop + 7 tools + trace logging + 16 tasks + baseline
 - [x] P1: Context compression (4 strategies), three-layer memory, scheduler (parallel + failure budget)
 - [x] P2: Skill system (manifest + hot-plug + self-evolution via `learn_skill`)
-- [x] P3a: English README, blog post, resume bullets, demo script
+- [x] P3a: English / Chinese README, blog post
 - [ ] P3b: Web console

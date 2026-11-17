@@ -12,14 +12,14 @@
 2. 三层记忆在什么任务上真正带来收益，什么任务上纯属负担？
 3. Skill 规模扩大后，按需加载与自进化各贡献多少？
 
-**所有结论都附带可复现的实验数据。** 真实模型跑批的 CSV 汇总在 [`docs/efficiency-data/`](docs/efficiency-data/)；每次运行自动重建的 mock 回归轨迹在 `logs/`（gitignore）。不拍脑袋。
+**所有结论都附带可复现的实验数据。** 真实模型跑批的 CSV 汇总在 [`docs/efficiency-data/`](docs/efficiency-data/)；每次运行自动重建的 mock 回归轨迹在 `logs/`（gitignore）。每个结论都标明了样本量。
 
 ## 核心结果
 
 | 模块 | 结论 | 证据 |
 |---|---|---|
 | **上下文压缩** | `state_card` 输入 token 降 **34%**，在 task_011/012 上各跑 3 次、6 次全部通过，耗时仅 +18% | `docs/experiments/001-context-compression.md` |
-| **三层记忆** | 有记忆 4/4 通过（2.5 步），无记忆 0/2 跑满 8 步 | `docs/experiments/002-memory.md` |
+| **三层记忆** | `task_014`（答案只存在记忆里）：有记忆 **2/2** 通过（2.5 步），无记忆 **0/2** 跑满 8 步 | `docs/experiments/002-memory.md` |
 | **调度器** | 并行调用通路验证；失败预算连续 2 次失败后强制换方法 | `docs/experiments/003-scheduler.md` |
 | **Skill** | manifest 按触发词注入；`learn_skill` 自进化写盘 | `docs/experiments/004-skills.md` |
 | **进度跟踪** | 每步记录「已完成/下一步」注入系统提示（参考字节 Aime 论文） | `docs/experiments/005-advanced.md` |
@@ -62,8 +62,8 @@ run_task.py / bench.py
 
 | 策略 | 运行次数 | 通过 | 真实样本 | 平均 token | P50 (s) | P95 (s) |
 |---|---|---|---|---|---|---|
-| full | 29 | **16/29 (55%)** | 29 | 5510 | 10.0 | 19.0 |
-| state_card | 8 | 8/8 | 8 | 11547 | 11.9 | 18.5 |
+| full（混合任务） | 29 | **16/29 (55%)** | 29 | 5510 | 10.0 | 19.0 |
+| state_card（仅长文本任务 011/012） | 8 | 8/8 | 8 | 11547 | 11.9 | 18.5 |
 | summary | 2 | 2/2 | 2 | 13958 | 167.1 | 192.6 |
 | window | 2 | 2/2 | 2 | 12753 | 14.9 | 18.0 |
 
@@ -72,7 +72,8 @@ run_task.py / bench.py
 - `docs/experiments/001-context-compression.md` 中的消融实验让 `full` vs `state_card` 在**同样 2 个任务**（task_011/012，各 3 次共 6 次）上对比 —— 那里才是「成功率不掉、token -34%」的来源，不是上表。
 - 基线 `full` 通过率 16/29 (55%)；13 次失败集中在开放式写作任务（task_014）— 每任务分析见 `docs/experiments/005-advanced.md`。
 - 真实验证跑了 29 次 full 策略样本后触发 `SetLimitExceeded`，`state_card` / `window` / `summary` 样本少 —— 已知缺口。
-- **样本量偏小**（压缩消融 6 次运行；记忆实验 4 + 2 次）。这些只能作为方向性信号，不足以支撑统计显著性结论。
+- **样本量偏小**（压缩消融 6 次运行；记忆实验可比的 2 + 2 次）。这些只能作为方向性信号，不足以支撑统计显著性结论。
+- `summary` 慢（P50 167 秒）是因为每次压缩都要多调一次模型；只有 2 次运行，属于方向性观察，不是稳定测量。
 
 ## 快速开始
 
@@ -134,5 +135,5 @@ stats.py          从 bench CSV 算通过率 / 步数 / tokens / P50-P95
 - [x] P0: ReAct 主循环 + 7 工具 + 轨迹日志 + 16 任务 + 基线
 - [x] P1: 上下文压缩（4 策略）、三层记忆、调度器（并行 + 失败预算）
 - [x] P2: Skill 体系（manifest + 热插拔 + `learn_skill` 自进化）
-- [x] P3a: 英文 / 中文 README、博客、简历 bullet、演示脚本
+- [x] P3a: 英文 / 中文 README、博客
 - [ ] P3b: Web 控制台
