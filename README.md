@@ -19,7 +19,7 @@ This project builds an agent runtime from scratch (no framework, pure Python std
 | Module | Finding | Evidence |
 |---|---|---|
 | **Context compression** | `state_card` cuts input tokens by **34%** with zero success-rate drop over 6 runs (task_011/012 x 3), only +18% latency | `docs/experiments/001-context-compression.md` |
-| **Three-layer memory** | `task_014` (answer exists only in memory): **2/2** pass in 2.5 steps with long-term memory, **0/2** exhaust 8 steps without | `docs/experiments/002-memory.md` |
+| **Three-layer memory** | `task_014` (answer exists only in memory): **2/2** pass in 3 steps with long-term memory, **0/2** exhaust 8 steps without | `docs/experiments/002-memory.md` |
 | **Scheduler** | Parallel tool calls verified; `FailureBudget` stops repeated failed calls after 2 repeats | `docs/experiments/003-scheduler.md` |
 | **Skills** | Manifest-based playbooks injected by trigger match; `learn_skill` self-evolves new skills to disk | `docs/experiments/004-skills.md` |
 | **Progress tracking** | Per-step progress state injected into system prompt (inspired by ByteDance Aime's Progress Management) | `docs/experiments/005-advanced.md` |
@@ -70,7 +70,7 @@ run_task.py / bench.py
 **Caveats (not hidden):**
 - Strategies were run on **different task subsets** at different times, so pass rates are not directly comparable between rows.
 - The ablation in `docs/experiments/001-context-compression.md` matched `full` vs `state_card` on the **same** 2 tasks (task_011/012, 3 runs each = 6 runs per strategy) - that is where the "zero success-rate drop" and "-34% tokens" claims come from, not this aggregate table.
-- Baseline `full` passed 16/29 (55%); the 13 failures are concentrated in open-ended writing tasks (task_014, which the model cannot reliably complete within the step limit) - see per-task analysis in `docs/experiments/005-advanced.md`.
+- Baseline `full` passed 16/29 (55%); the 13 failures are concentrated in open-ended writing tasks (task_014, which the model cannot reliably complete within the step limit) - see the step-by-step failure analysis in [`docs/experiments/007-failure-analysis.md`](docs/experiments/007-failure-analysis.md).
 - Real quota hit `SetLimitExceeded` after 29 full-strategy samples, so `state_card` / `window` / `summary` have smaller samples - known gap.
 - **Sample sizes are small** (6 runs for the compression ablation; 2 + 2 comparable runs for the memory test). Treat these as directional signals, not statistically significant results.
 - `summary` is slow (P50 167 s) because every compression step triggers an extra LLM call. With only 2 runs this is a directional observation, not a stable measurement.
