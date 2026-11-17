@@ -18,8 +18,8 @@
 
 | 模块 | 结论 | 证据 |
 |---|---|---|
-| **上下文压缩** | `state_card` 输入 token 降 **34%**，在 task_011/012 上各跑 3 次、6 次全部通过，耗时仅 +18% | `docs/experiments/001-context-compression.md` |
-| **三层记忆** | `task_014`（答案只存在记忆里）：有记忆 **2/2** 通过（3 步），无记忆 **0/2** 跑满 8 步 | `docs/experiments/002-memory.md` |
+| **上下文压缩** | `state_card` 输入 token 降 **34%**，匹配的 6 次运行（task_011/012）全部通过，耗时仅 +18% | `docs/experiments/001-context-compression.md` |
+| **三层记忆** | `task_014`（事实只存在记忆里）：有记忆 **2/2** 通过（3 步）；无记忆对照组 **0/2**（跑满 8 步） | `docs/experiments/002-memory.md`, `docs/experiments/007-failure-analysis.md` |
 | **调度器** | 并行调用通路验证；失败预算连续 2 次失败后强制换方法 | `docs/experiments/003-scheduler.md` |
 | **Skill** | manifest 按触发词注入；`learn_skill` 自进化写盘 | `docs/experiments/004-skills.md` |
 | **进度跟踪** | 每步记录「已完成/下一步」注入系统提示（参考字节 Aime 论文） | `docs/experiments/005-advanced.md` |
@@ -58,21 +58,22 @@ run_task.py / bench.py
 
 `stats.py` 聚合 `logs/bench_*.csv` 的数据。Mock 行（`prompt_tokens = 0`）不计入 token/延迟百分位，真实数据不被污染。
 
-> **看这张表要小心：** 它聚合了全部运行，但各策略跑的是**不同任务子集**，所以每任务 token 不能横向比较。同任务对比见下方消融实验（task_011/012 各 3 次）。
+> **看这张表要小心：** 它聚合了全部运行，但各策略跑的是**不同任务子集**，所以每任务 token 不能横向比较。同任务对比见下方消融实验（task_011/012）。
 
 | 策略 | 运行次数 | 通过 | 真实样本 | 平均 token | P50 (s) | P95 (s) |
 |---|---|---|---|---|---|---|
-| full（混合任务） | 29 | **16/29 (55%)** | 29 | 5510 | 10.0 | 19.0 |
-| state_card（仅长文本任务 011/012） | 8 | 8/8 | 8 | 11547 | 11.9 | 18.5 |
+| full（仅 4 个任务：011/012/013/014） | 29 | **16/29 (55%)** | 29 | 5510 | 10.0 | 19.0 |
+| state_card（任务 011/012；8 次含 2 次预热） | 8 | 8/8 | 8 | 11547 | 11.9 | 18.5 |
 | summary | 2 | 2/2 | 2 | 13958 | 167.1 | 192.6 |
 | window | 2 | 2/2 | 2 | 12753 | 14.9 | 18.0 |
 
 **坦诚说明：**
+- **55% 不是 19 个任务的通过率。** 29 次真实 `full` 运行只覆盖 4 个任务：011（3 次）、012（3 次）、013（8 次）、014（15 次）。13 次失败全部来自 `task_014`，所以应读作「task_014 很难」，而不是「运行时一半任务失败」。逐步分析见 [`docs/experiments/007-failure-analysis.md`](docs/experiments/007-failure-analysis.md)。
 - 各策略在不同时间、不同任务子集上运行，通过率不能直接横比。
-- `docs/experiments/001-context-compression.md` 中的消融实验让 `full` vs `state_card` 在**同样 2 个任务**（task_011/012，各 3 次共 6 次）上对比 —— 那里才是「成功率不掉、token -34%」的来源，不是上表。
-- 基线 `full` 通过率 16/29 (55%)；13 次失败集中在开放式写作任务（task_014）— 逐步失败分析见 [`docs/experiments/007-failure-analysis.md`](docs/experiments/007-failure-analysis.md)。
+- `docs/experiments/001-context-compression.md` 中的消融实验让 `full` vs `state_card` 在**同样 2 个任务**（task_011/012）上对比，各自剔除首轮预热后各 6 次 —— 那里才是「token -34%」的来源：每任务输入 15,670 vs 10,323。上表不是这个对比。
+- **记忆实验的对照组并非完全干净**：`workspace/out/` 在运行之间没有重置，有记忆组写入的文件残留到了无记忆组。对照组第 7 步实际读到了 `Phoenix` 仍然失败。这一点写在 007 里，没有隐瞒；在干净环境下重跑受 API 额度限制尚未执行。
 - 真实验证跑了 29 次 full 策略样本后触发 `SetLimitExceeded`，`state_card` / `window` / `summary` 样本少 —— 已知缺口。
-- **样本量偏小**（压缩消融 6 次运行；记忆实验可比的 2 + 2 次）。这些只能作为方向性信号，不足以支撑统计显著性结论。
+- **样本量偏小**（压缩消融 6 次匹配运行；记忆实验可比的 2 + 2 次）。这些只能作为方向性信号，不足以支撑统计显著性结论。
 - `summary` 慢（P50 167 秒）是因为每次压缩都要多调一次模型；只有 2 次运行，属于方向性观察，不是稳定测量。
 
 ## 快速开始
