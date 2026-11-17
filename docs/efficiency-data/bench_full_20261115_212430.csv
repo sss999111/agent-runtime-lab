@@ -1,5 +1,5 @@
 strategy,task,run,passed,reason,steps,prompt_tokens,completion_tokens,elapsed_s,log
-full,task_013,1,True,记忆中包含全部 1 项,2,874,155,3.9,D:\Trae-CN\agent-runtime-lab\logs\20261115_212352_task_013_r1.jsonl
-full,task_013,2,True,记忆中包含全部 1 项,2,998,828,14.6,D:\Trae-CN\agent-runtime-lab\logs\20261115_212356_task_013_r2.jsonl
-full,task_014,1,True,包含全部 1 项,3,1821,370,6.7,D:\Trae-CN\agent-runtime-lab\logs\20261115_212410_task_014_r1.jsonl
-full,task_014,2,True,包含全部 1 项,3,2011,807,13.2,D:\Trae-CN\agent-runtime-lab\logs\20261115_212417_task_014_r2.jsonl
+full,task_013,1,True,记忆中包含全部 1 项,2,874,155,3.9,./logs\20261115_212352_task_013_r1.jsonl
+full,task_013,2,True,记忆中包含全部 1 项,2,998,828,14.6,./logs\20261115_212356_task_013_r2.jsonl
+full,task_014,1,True,包含全部 1 项,3,1821,370,6.7,./logs\20261115_212410_task_014_r1.jsonl
+full,task_014,2,True,包含全部 1 项,3,2011,807,13.2,./logs\20261115_212417_task_014_r2.jsonl

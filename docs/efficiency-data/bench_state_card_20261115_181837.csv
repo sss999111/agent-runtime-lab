@@ -1,3 +1,3 @@
 strategy,task,run,passed,reason,steps,prompt_tokens,completion_tokens,elapsed_s,log
-state_card,task_011,1,True,包含全部 3 项,6,9483,542,14.3,D:\Trae-CN\agent-runtime-lab\logs\20261115_181813_task_011_r1.jsonl
-state_card,task_012,1,True,包含全部 1 项,5,8254,577,9.4,D:\Trae-CN\agent-runtime-lab\logs\20261115_181828_task_012_r1.jsonl
+state_card,task_011,1,True,包含全部 3 项,6,9483,542,14.3,./logs\20261115_181813_task_011_r1.jsonl
+state_card,task_012,1,True,包含全部 1 项,5,8254,577,9.4,./logs\20261115_181828_task_012_r1.jsonl

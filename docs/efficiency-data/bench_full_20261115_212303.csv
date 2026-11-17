@@ -1,5 +1,5 @@
 strategy,task,run,passed,reason,steps,prompt_tokens,completion_tokens,elapsed_s,log
-full,task_013,1,True,记忆中包含全部 1 项,2,942,198,4.7,D:\Trae-CN\agent-runtime-lab\logs\20261115_212210_task_013_r1.jsonl
-full,task_013,2,True,记忆中包含全部 1 项,2,1134,1022,13.7,D:\Trae-CN\agent-runtime-lab\logs\20261115_212215_task_013_r2.jsonl
-full,task_014,1,False,实际内容：'本项目是为中小研发团队打造的轻量化敏捷协作工具，可实现需求全生命周期管理、迭代进度实时同步与团队效能数据自动统计。',3,2117,1327,20.7,D:\Trae-CN\agent-runtime-lab\logs\20261115_212229_task_014_r1.jsonl
-full,task_014,2,False,实际内容：'本项目是为中小研发团队打造的轻量化敏捷协作工具，可实现需求全生命周期管理、迭代进度实时同步与团队效能数据自动统计。',3,2326,862,13.5,D:\Trae-CN\agent-runtime-lab\logs\20261115_212250_task_014_r2.jsonl
+full,task_013,1,True,记忆中包含全部 1 项,2,942,198,4.7,./logs\20261115_212210_task_013_r1.jsonl
+full,task_013,2,True,记忆中包含全部 1 项,2,1134,1022,13.7,./logs\20261115_212215_task_013_r2.jsonl
+full,task_014,1,False,任务未完成,3,2117,1327,20.7,./logs\20261115_212229_task_014_r1.jsonl
+full,task_014,2,False,任务未完成,3,2326,862,13.5,./logs\20261115_212250_task_014_r2.jsonl

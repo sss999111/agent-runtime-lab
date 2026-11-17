@@ -1,3 +1,3 @@
 strategy,task,run,passed,reason,steps,prompt_tokens,completion_tokens,elapsed_s,log
-full,task_014,1,False,任务未完成,8,7698,605,14.1,D:\Trae-CN\agent-runtime-lab\logs\20261115_212431_task_014_r1.jsonl
-full,task_014,2,False,任务未完成,8,9623,1051,21.2,D:\Trae-CN\agent-runtime-lab\logs\20261115_212445_task_014_r2.jsonl
+full,task_014,1,False,任务未完成,8,7698,605,14.1,./logs\20261115_212431_task_014_r1.jsonl
+full,task_014,2,False,任务未完成,8,9623,1051,21.2,./logs\20261115_212445_task_014_r2.jsonl
